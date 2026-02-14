@@ -55,7 +55,14 @@ npm run preview   # preview the production build locally
 1. **Hunt issues** — type an `owner/repo` in the search bar (optional) and click **Hunt Issues**, or just hit search with the default filters to explore globally.
 2. **Refine filters** — expand sidebar sections to narrow by time window, language, labels, min stars, sort order, or min comments.
 3. **Track repos** — switch to the **Repos** tab, add repos you care about, and the app will aggregate issues from all of them.
+
+![Add repos to track](https://github.com/ragini-pandey/fresh-issues/blob/main/public/my-repos.png)
+
 4. **GitHub token** — click the settings gear in the sidebar to add a personal access token for higher API rate limits.
+
+### Issues List
+
+![Issues list view](https://github.com/ragini-pandey/fresh-issues/blob/main/public/fresh-issue-list.png)
 
 ## Project Structure
 
