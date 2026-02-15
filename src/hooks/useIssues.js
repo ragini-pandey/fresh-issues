@@ -7,6 +7,7 @@ export function useIssues(savedRepos = []) {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [warnings, setWarnings] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [rateLimit, setRateLimit] = useState({ remaining: null, reset: null });
   const [page, setPage] = useState(1);
@@ -43,6 +44,7 @@ export function useIssues(savedRepos = []) {
     async (pageNum = 1, append = false) => {
       setLoading(true);
       setError(null);
+      setWarnings([]);
       try {
         const searchFilters = { ...filters };
         if (filters.timeWindow > 0) {
@@ -59,6 +61,19 @@ export function useIssues(savedRepos = []) {
             )
           : await fetchIssues(searchFilters, token, pageNum);
         const items = result.items;
+
+        // Handle partial failures when fetching multiple repos
+        if (result.errors && result.errors.length > 0) {
+          const errorWarnings = result.errors.map(err => 
+            `${err.repo}: ${err.error}`
+          );
+          setWarnings(errorWarnings);
+          
+          // If all repos failed, show it as an error
+          if (items.length === 0 && savedRepos.length > 0) {
+            throw new Error('Failed to fetch issues from all tracked repositories. ' + errorWarnings[0]);
+          }
+        }
 
         // Track new issues
         if (!isFirstLoad.current) {
@@ -93,7 +108,16 @@ export function useIssues(savedRepos = []) {
         setPage(pageNum);
         isFirstLoad.current = false;
       } catch (err) {
-        setError(err.message);
+        console.error('GitHub API Error:', err);
+        setError(err.message || 'An unexpected error occurred while fetching issues.');
+        
+        // If it's a rate limit error, update the rate limit state
+        if (err.details?.rateLimitReset) {
+          setRateLimit({
+            remaining: 0,
+            reset: err.details.rateLimitReset,
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -135,6 +159,7 @@ export function useIssues(savedRepos = []) {
     issues,
     loading,
     error,
+    warnings,
     totalCount,
     rateLimit,
     lastRefresh,

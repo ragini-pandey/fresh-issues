@@ -1,8 +1,12 @@
-import { RefreshCw, Circle } from 'lucide-react';
+import { RefreshCw, Circle, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function StatusBar({ rateLimit, autoRefresh, newCount, onRefresh, loading }) {
+  const isLowRateLimit = rateLimit.remaining !== null && rateLimit.remaining < 10;
+  const resetTime = rateLimit.reset ? new Date(rateLimit.reset).toLocaleTimeString() : null;
+
   return (
     <div className="flex items-center gap-1.5 sm:gap-2.5 text-sm text-muted-foreground shrink-0">
       {autoRefresh && (
@@ -16,9 +20,27 @@ export default function StatusBar({ rateLimit, autoRefresh, newCount, onRefresh,
         </Badge>
       )}
       {rateLimit.remaining !== null && (
-        <span className={`text-xs sm:text-sm font-mono tabular-nums hidden sm:inline ${rateLimit.remaining < 5 ? 'text-orange font-semibold' : 'text-muted-foreground/70'}`}>
-          {rateLimit.remaining} req
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={`text-xs sm:text-sm font-mono tabular-nums hidden sm:inline flex items-center gap-1 ${
+              rateLimit.remaining === 0 ? 'text-destructive font-bold' :
+              rateLimit.remaining < 5 ? 'text-orange-600 dark:text-orange-500 font-semibold' : 
+              'text-muted-foreground/70'
+            }`}>
+              {isLowRateLimit && rateLimit.remaining > 0 && <AlertTriangle size={12} />}
+              {rateLimit.remaining} req
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">
+              {rateLimit.remaining === 0 
+                ? `Rate limit exhausted. Resets at ${resetTime}`
+                : isLowRateLimit 
+                ? `Running low on API requests. Resets at ${resetTime}`
+                : `${rateLimit.remaining} API requests remaining`}
+            </p>
+          </TooltipContent>
+        </Tooltip>
       )}
       <Button
         onClick={onRefresh}

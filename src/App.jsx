@@ -40,6 +40,7 @@ function AppContent() {
     issues,
     loading,
     error,
+    warnings,
     totalCount,
     rateLimit,
     lastRefresh,
@@ -126,9 +127,11 @@ function AppContent() {
             issues={issues}
             loading={loading}
             error={error}
+            warnings={warnings}
             totalCount={totalCount}
             loadMore={loadMore}
             newIds={newIds}
+            onRetry={refresh}
           />
         ) : (
           <RepoManager

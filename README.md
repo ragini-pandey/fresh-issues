@@ -60,6 +60,43 @@ npm run preview   # preview the production build locally
 
 4. **GitHub token** — click the settings gear in the sidebar to add a personal access token for higher API rate limits.
 
+## Error Handling
+
+The app includes comprehensive error handling for GitHub API requests:
+
+### Common Errors
+
+- **403 - Rate Limit Exceeded**: The GitHub API has strict rate limits:
+  - **Without authentication**: 60 requests per hour
+  - **With authentication**: 5,000 requests per hour
+  - **Solution**: Add a GitHub Personal Access Token in Settings (⚙️ icon in sidebar)
+
+- **401 - Authentication Failed**: Your GitHub token is invalid or expired
+  - **Solution**: Update or remove your token in Settings
+
+- **404 - Not Found**: Repository doesn't exist or you don't have access
+  - **Solution**: Check the repository name format (`owner/repo`)
+
+- **Network Errors**: Unable to connect to GitHub API
+  - **Solution**: Check your internet connection
+
+### Features
+
+- **Detailed error messages**: Context-specific guidance for each error type
+- **Retry functionality**: "Try Again" button on error screens
+- **Partial failure handling**: When tracking multiple repos, the app will show warnings for failed repos while displaying successful results
+- **Rate limit monitoring**: Visual indicators in the status bar when rate limits are running low
+- **Auto-pause on rate limit**: Auto-refresh pauses when rate limits are exhausted
+
+### GitHub Token Setup
+
+To avoid rate limiting issues:
+
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Generate a new token (classic) with `public_repo` scope (or no scopes for public data only)
+3. Copy the token and paste it in the app's Settings
+4. Your rate limit will increase from 60 to 5,000 requests/hour
+
 ### Issues List
 
 ![Issues list view](https://github.com/ragini-pandey/fresh-issues/blob/main/public/fresh-issue-list.png)

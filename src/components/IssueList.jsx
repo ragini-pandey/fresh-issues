@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import IssueCard from './IssueCard';
-import { Loader2, ArrowUp } from 'lucide-react';
+import { Loader2, ArrowUp, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
@@ -28,7 +28,7 @@ function SkeletonCard() {
   );
 }
 
-export default function IssueList({ issues, loading, error, totalCount, loadMore, newIds }) {
+export default function IssueList({ issues, loading, error, warnings = [], totalCount, loadMore, newIds, onRetry }) {
   const scrollRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -45,17 +45,56 @@ export default function IssueList({ issues, loading, error, totalCount, loadMore
   }
 
   if (error) {
+    const isRateLimitError = error.includes('rate limit') || error.includes('Rate limit');
+    const isAuthError = error.includes('Authentication') || error.includes('token');
+    const isNetworkError = error.includes('Network error') || error.includes('connect');
+
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="flex gap-3.5 items-start bg-destructive/10 border border-destructive/20 rounded-xl p-5 max-w-lg text-left animate-fade-in-up">
-          <span className="text-xl">⚠</span>
-          <div>
-            <strong className="text-destructive">Error fetching issues</strong>
-            <p className="text-muted-foreground text-sm mt-1">{error}</p>
-            {error.includes('rate limit') && (
-              <p className="text-xs text-muted-foreground mt-2 opacity-70">Add a GitHub token in Settings to increase your rate limit.</p>
-            )}
+        <div className="flex flex-col gap-3.5 bg-destructive/10 border border-destructive/20 rounded-xl p-6 max-w-lg text-left animate-fade-in-up">
+          <div className="flex gap-3.5 items-start">
+            <span className="text-xl">⚠️</span>
+            <div className="flex-1">
+              <strong className="text-destructive block mb-1">Error fetching issues</strong>
+              <p className="text-sm text-foreground/80 leading-relaxed">{error}</p>
+              
+              {isRateLimitError && (
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    💡 <strong>Tip:</strong> Add a GitHub Personal Access Token in Settings to increase your rate limit from 60 to 5,000 requests per hour.
+                  </p>
+                </div>
+              )}
+              
+              {isAuthError && (
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    💡 <strong>Tip:</strong> Check your GitHub token in Settings and ensure it has the correct permissions.
+                  </p>
+                </div>
+              )}
+              
+              {isNetworkError && (
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    💡 <strong>Tip:</strong> Check your internet connection and try again.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
+          
+          {onRetry && (
+            <Button
+              onClick={onRetry}
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+            >
+              <RefreshCw size={14} className="mr-2" />
+              Try Again
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -89,6 +128,28 @@ export default function IssueList({ issues, loading, error, totalCount, loadMore
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth">
       <div className="max-w-3xl mx-auto w-full px-3 sm:px-6 py-4 sm:py-5">
+        {/* Warnings banner for partial failures */}
+        {warnings.length > 0 && (
+          <div className="mb-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg animate-fade-in-up">
+            <div className="flex gap-2 items-start">
+              <AlertTriangle size={16} className="text-yellow-600 dark:text-yellow-500 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400 mb-1">
+                  Some repositories failed to load
+                </p>
+                <div className="text-xs text-yellow-700 dark:text-yellow-500 space-y-1">
+                  {warnings.slice(0, 3).map((warning, idx) => (
+                    <p key={idx} className="font-mono">{warning}</p>
+                  ))}
+                  {warnings.length > 3 && (
+                    <p className="italic">...and {warnings.length - 3} more</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
             <span className="text-xs font-bold uppercase tracking-widest text-primary">{totalCount.toLocaleString()} issues</span>

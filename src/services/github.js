@@ -1,6 +1,19 @@
 const GITHUB_API = 'https://api.github.com';
 
 /**
+ * Custom error class for GitHub API errors with detailed information.
+ */
+class GitHubAPIError extends Error {
+  constructor(message, status, response, details = {}) {
+    super(message);
+    this.name = 'GitHubAPIError';
+    this.status = status;
+    this.response = response;
+    this.details = details;
+  }
+}
+
+/**
  * Build the GitHub search query string from filters.
  */
 function buildSearchQuery(filters) {
@@ -65,11 +78,88 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, { headers });
+  let res;
+  try {
+    res = await fetch(url, { headers });
+  } catch (err) {
+    throw new GitHubAPIError(
+      'Network error: Unable to connect to GitHub API. Please check your internet connection.',
+      0,
+      null,
+      { originalError: err.message }
+    );
+  }
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.message || `GitHub API error: ${res.status}`);
+    let errorData;
+    try {
+      errorData = await res.json();
+    } catch {
+      errorData = {};
+    }
+
+    // Extract rate limit info if available
+    const rateLimitRemaining = res.headers.get('x-ratelimit-remaining');
+    const rateLimitReset = res.headers.get('x-ratelimit-reset');
+    const resetDate = rateLimitReset ? new Date(parseInt(rateLimitReset) * 1000) : null;
+
+    // Build detailed error message based on status code
+    let errorMessage;
+    let userMessage;
+
+    switch (res.status) {
+      case 401:
+        errorMessage = 'Authentication failed: Invalid or expired GitHub token.';
+        userMessage = 'Your GitHub token is invalid or has expired. Please update it in Settings.';
+        break;
+
+      case 403:
+        if (errorData.message?.includes('rate limit') || rateLimitRemaining === '0') {
+          const resetTime = resetDate ? resetDate.toLocaleTimeString() : 'soon';
+          errorMessage = `Rate limit exceeded. Resets at ${resetTime}.`;
+          userMessage = token
+            ? `API rate limit exceeded. Your limit will reset at ${resetTime}. Try again later.`
+            : `API rate limit exceeded without authentication. Add a GitHub token in Settings for 5,000 requests/hour (resets at ${resetTime}).`;
+        } else if (errorData.message?.includes('abuse')) {
+          errorMessage = 'GitHub abuse detection triggered.';
+          userMessage = 'Too many requests detected. Please wait a few minutes before trying again.';
+        } else {
+          errorMessage = errorData.message || 'Access forbidden.';
+          userMessage = 'Access denied by GitHub API. This may be due to authentication issues or repository access restrictions.';
+        }
+        break;
+
+      case 404:
+        errorMessage = 'Repository or resource not found.';
+        userMessage = 'The requested repository or resource could not be found. Please check the repository name.';
+        break;
+
+      case 422:
+        errorMessage = errorData.message || 'Invalid request parameters.';
+        userMessage = `Invalid search query: ${errorData.message || 'Please check your filters and try again.'}`;
+        break;
+
+      case 503:
+        errorMessage = 'GitHub service unavailable.';
+        userMessage = 'GitHub is temporarily unavailable. Please try again in a few moments.';
+        break;
+
+      default:
+        errorMessage = errorData.message || `GitHub API error: ${res.status}`;
+        userMessage = `An error occurred while fetching issues (${res.status}). ${errorData.message || 'Please try again.'}`;
+    }
+
+    throw new GitHubAPIError(
+      userMessage,
+      res.status,
+      errorData,
+      {
+        technicalMessage: errorMessage,
+        rateLimitRemaining,
+        rateLimitReset: resetDate,
+        documentationUrl: errorData.documentation_url,
+      }
+    );
   }
 
   const data = await res.json();
@@ -94,7 +184,7 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
  */
 export async function fetchIssuesForRepos(repoNames, filters = {}, token = '', page = 1, perPage = 10) {
   if (!repoNames || repoNames.length === 0) {
-    return { totalCount: 0, items: [], rateLimitRemaining: null, rateLimitReset: null };
+    return { totalCount: 0, items: [], rateLimitRemaining: null, rateLimitReset: null, errors: [] };
   }
 
   const results = await Promise.allSettled(
@@ -107,8 +197,10 @@ export async function fetchIssuesForRepos(repoNames, filters = {}, token = '', p
   let totalCount = 0;
   let rateLimitRemaining = null;
   let rateLimitReset = null;
+  const errors = [];
 
-  for (const result of results) {
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
     if (result.status === 'fulfilled') {
       allItems = allItems.concat(result.value.items);
       totalCount += result.value.totalCount;
@@ -118,6 +210,13 @@ export async function fetchIssuesForRepos(repoNames, filters = {}, token = '', p
       if (result.value.rateLimitReset) {
         rateLimitReset = result.value.rateLimitReset;
       }
+    } else {
+      // Track errors for each failed repo
+      errors.push({
+        repo: repoNames[i],
+        error: result.reason?.message || result.reason?.toString() || 'Unknown error',
+        status: result.reason?.status,
+      });
     }
   }
 
@@ -140,7 +239,7 @@ export async function fetchIssuesForRepos(repoNames, filters = {}, token = '', p
     return b.reactions - a.reactions || new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  return { totalCount, items: unique, rateLimitRemaining, rateLimitReset };
+  return { totalCount, items: unique, rateLimitRemaining, rateLimitReset, errors };
 }
 
 /**
