@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchIssues, fetchIssuesForRepos, getTimeAgo } from '../services/github';
 
-const POLL_INTERVAL = 30_000; // 30 seconds
+const DEFAULT_POLL_INTERVAL = 60_000; // 60 seconds (reduced from 30)
+const RATE_LIMITED_POLL_INTERVAL = 300_000; // 5 minutes when rate limited
+const MAX_RETRY_DELAY = 300_000; // 5 minutes max
+let currentRetryDelay = 0;
 
 export function useIssues(savedRepos = []) {
   const [issues, setIssues] = useState([]);
@@ -109,14 +112,36 @@ export function useIssues(savedRepos = []) {
         isFirstLoad.current = false;
       } catch (err) {
         console.error('GitHub API Error:', err);
-        setError(err.message || 'An unexpected error occurred while fetching issues.');
         
-        // If it's a rate limit error, update the rate limit state
-        if (err.details?.rateLimitReset) {
-          setRateLimit({
-            remaining: 0,
-            reset: err.details.rateLimitReset,
-          });
+        // Check if it's a rate limit error (primary or secondary)
+        const isRateLimitError = err.isRateLimit || err.message?.includes('rate limit') || err.details?.isSecondaryRateLimit;
+        
+        if (isRateLimitError) {
+          // Implement exponential backoff
+          currentRetryDelay = currentRetryDelay === 0 ? 60_000 : Math.min(currentRetryDelay * 2, MAX_RETRY_DELAY);
+          
+          const waitMinutes = Math.round(currentRetryDelay / 60_000);
+          setError(`${err.message || 'Rate limit exceeded.'} Auto-refresh paused for ${waitMinutes} minute(s).`);
+          
+          // Temporarily disable auto-refresh
+          setAutoRefresh(false);
+          
+          // Re-enable after delay
+          setTimeout(() => {
+            setAutoRefresh(true);
+            setError(null);
+            currentRetryDelay = Math.max(0, currentRetryDelay / 2); // Gradually reduce delay
+          }, currentRetryDelay);
+          
+          if (err.details?.rateLimitReset) {
+            setRateLimit({
+              remaining: 0,
+              reset: err.details.rateLimitReset,
+            });
+          }
+        } else {
+          currentRetryDelay = 0; // Reset delay on non-rate-limit errors
+          setError(err.message || 'An unexpected error occurred while fetching issues.');
         }
       } finally {
         setLoading(false);
@@ -133,10 +158,15 @@ export function useIssues(savedRepos = []) {
 
   useEffect(() => {
     if (autoRefresh) {
-      intervalRef.current = setInterval(() => search(1), POLL_INTERVAL);
+      // Use longer interval if we're low on rate limit or have errors
+      const pollInterval = (rateLimit.remaining !== null && rateLimit.remaining < 10) || error
+        ? RATE_LIMITED_POLL_INTERVAL
+        : DEFAULT_POLL_INTERVAL;
+      
+      intervalRef.current = setInterval(() => search(1), pollInterval);
     }
     return () => clearInterval(intervalRef.current);
-  }, [autoRefresh, search]);
+  }, [autoRefresh, search, rateLimit.remaining, error]);
 
   const loadMore = useCallback(() => {
     search(page + 1, true);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { POPULAR_LABELS, LANGUAGES, TIME_WINDOWS, STAR_PRESETS, SORT_OPTIONS, COMMENT_PRESETS } from '../services/github';
-import { Search, ChevronDown, ChevronRight, Settings, Crosshair, Zap, Github, Star, ArrowUpDown, MessageSquare, BookMarked, LayoutList, X } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Settings, Crosshair, Zap, Github, Star, ArrowUpDown, MessageSquare, BookMarked, LayoutList, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -92,7 +92,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
         <div className="px-4 py-4 space-y-4">
           {/* Search */}
           <form className="space-y-2" onSubmit={handleSearch}>
-            <div className="relative">
+            {/* <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <Input
                 type="text"
@@ -101,7 +101,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                 onChange={(e) => setRepo(e.target.value)}
                 className="pl-9 h-9 bg-background"
               />
-            </div>
+            </div> */}
             <Button type="submit" className="w-full cursor-pointer" size="default">
               <Crosshair size={14} />
               Hunt Issues
@@ -110,27 +110,25 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
 
           <Separator />
 
-          {/* Time Window */}
-          <SidebarSection title="Time Window" open={sections.time} onToggle={() => toggleSection('time')}>
-            <div className="flex flex-col gap-0.5">
+          {/* Time Window - Compact horizontal layout */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary/80">
+              <Clock size={12} />
+              <span>Time Window</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
               {TIME_WINDOWS.map((tw) => (
-                <button
+                <Badge
                   key={tw.value}
+                  variant={filters.timeWindow === tw.value ? 'default' : 'outline'}
+                  className={`cursor-pointer text-[11px] ${filters.timeWindow === tw.value ? '' : 'hover:bg-secondary'}`}
                   onClick={() => updateFilters({ timeWindow: tw.value })}
-                  className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors text-left cursor-pointer ${
-                    filters.timeWindow === tw.value
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
                 >
-                  <span className={`size-1.5 rounded-full shrink-0 transition-colors ${
-                    filters.timeWindow === tw.value ? 'bg-primary shadow-[0_0_6px_rgba(80,250,123,0.5)]' : 'bg-border-light'
-                  }`} />
                   {tw.label}
-                </button>
+                </Badge>
               ))}
             </div>
-          </SidebarSection>
+          </div>
 
           {/* Language */}
           <SidebarSection title="Language" open={sections.lang} onToggle={() => toggleSection('lang')}>

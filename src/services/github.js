@@ -1,5 +1,15 @@
 const GITHUB_API = 'https://api.github.com';
 
+// Request throttling to prevent secondary rate limits
+const REQUEST_QUEUE = [];
+const MIN_REQUEST_INTERVAL = 1000; // Minimum 1 second between requests
+let lastRequestTime = 0;
+let isProcessingQueue = false;
+
+// Simple in-memory cache
+const CACHE = new Map();
+const CACHE_DURATION = 60000; // 1 minute cache
+
 /**
  * Custom error class for GitHub API errors with detailed information.
  */
@@ -10,7 +20,63 @@ class GitHubAPIError extends Error {
     this.status = status;
     this.response = response;
     this.details = details;
+    this.isRateLimit = status === 403 && (message.includes('rate limit') || message.includes('secondary rate limit') || details.isSecondaryRateLimit);
   }
+}
+
+/**
+ * Process the request queue with throttling
+ */
+async function processQueue() {
+  if (isProcessingQueue || REQUEST_QUEUE.length === 0) return;
+  
+  isProcessingQueue = true;
+  
+  while (REQUEST_QUEUE.length > 0) {
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+    }
+    
+    const { resolver, request } = REQUEST_QUEUE.shift();
+    lastRequestTime = Date.now();
+    
+    try {
+      const result = await request();
+      resolver.resolve(result);
+    } catch (error) {
+      resolver.reject(error);
+    }
+  }
+  
+  isProcessingQueue = false;
+}
+
+/**
+ * Queue a request to be executed with throttling
+ */
+function queueRequest(request) {
+  return new Promise((resolve, reject) => {
+    REQUEST_QUEUE.push({ resolver: { resolve, reject }, request });
+    processQueue();
+  });
+}
+
+/**
+ * Get cached data or execute the request
+ */
+function getCached(cacheKey, request) {
+  const cached = CACHE.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return Promise.resolve(cached.data);
+  }
+  
+  return queueRequest(request).then(data => {
+    CACHE.set(cacheKey, { data, timestamp: Date.now() });
+    return data;
+  });
 }
 
 /**
@@ -69,6 +135,9 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
   const query = buildSearchQuery(filters);
   const sortParam = filters.sortBy || 'reactions';
   const url = `${GITHUB_API}/search/issues?q=${encodeURIComponent(query)}&sort=${sortParam}&order=desc&page=${page}&per_page=${perPage}`;
+  
+  // Create cache key from request parameters
+  const cacheKey = `issues:${query}:${sortParam}:${page}:${perPage}`;
 
   const headers = {
     Accept: 'application/vnd.github+json',
@@ -78,17 +147,18 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
     headers.Authorization = `Bearer ${token}`;
   }
 
-  let res;
-  try {
-    res = await fetch(url, { headers });
-  } catch (err) {
-    throw new GitHubAPIError(
-      'Network error: Unable to connect to GitHub API. Please check your internet connection.',
-      0,
-      null,
-      { originalError: err.message }
-    );
-  }
+  const makeRequest = async () => {
+    let res;
+    try {
+      res = await fetch(url, { headers });
+    } catch (err) {
+      throw new GitHubAPIError(
+        'Network error: Unable to connect to GitHub API. Please check your internet connection.',
+        0,
+        null,
+        { originalError: err.message }
+      );
+    }
 
   if (!res.ok) {
     let errorData;
@@ -114,7 +184,13 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
         break;
 
       case 403:
-        if (errorData.message?.includes('rate limit') || rateLimitRemaining === '0') {
+        const isSecondaryRateLimit = errorData.message?.includes('secondary rate limit') || errorData.documentation_url?.includes('secondary-rate-limits');
+        const isPrimaryRateLimit = errorData.message?.includes('rate limit') || rateLimitRemaining === '0';
+        
+        if (isSecondaryRateLimit) {
+          errorMessage = 'Secondary rate limit exceeded.';
+          userMessage = 'You\'re making requests too quickly. The app will automatically slow down. Please wait 2-5 minutes before trying again.';
+        } else if (isPrimaryRateLimit) {
           const resetTime = resetDate ? resetDate.toLocaleTimeString() : 'soon';
           errorMessage = `Rate limit exceeded. Resets at ${resetTime}.`;
           userMessage = token
@@ -158,20 +234,25 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
         rateLimitRemaining,
         rateLimitReset: resetDate,
         documentationUrl: errorData.documentation_url,
+        isSecondaryRateLimit: res.status === 403 && (errorData.message?.includes('secondary rate limit') || errorData.documentation_url?.includes('secondary-rate-limits')),
       }
     );
   }
 
-  const data = await res.json();
+    const data = await res.json();
 
-  const items = data.items.map(normalizeIssue);
+    const items = data.items.map(normalizeIssue);
 
-  return {
-    totalCount: data.total_count,
-    items,
-    rateLimitRemaining: parseInt(res.headers.get('x-ratelimit-remaining') || '0', 10),
-    rateLimitReset: parseInt(res.headers.get('x-ratelimit-reset') || '0', 10),
+    return {
+      totalCount: data.total_count,
+      items,
+      rateLimitRemaining: parseInt(res.headers.get('x-ratelimit-remaining') || '0', 10),
+      rateLimitReset: parseInt(res.headers.get('x-ratelimit-reset') || '0', 10),
+    };
   };
+
+  // Use caching and request queueing
+  return getCached(cacheKey, makeRequest);
 }
 
 /**
