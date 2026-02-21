@@ -122,7 +122,3 @@ src/
 └── lib/
     └── utils.js            # Tailwind class merge utility
 ```
-
-## License
-
-MIT
