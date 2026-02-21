@@ -30,7 +30,7 @@ A lightweight React app that helps you discover fresh, beginner-friendly open so
 ### Install
 
 ```bash
-git clone https://github.com/abhishek-deshmukh-el/issues.git
+git clone https://github.com/ragini-pandey/fresh-issues
 cd issues
 npm install
 ```
