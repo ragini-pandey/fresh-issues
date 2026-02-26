@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchIssues, fetchIssuesForRepos, getTimeAgo } from '../services/github';
 
-const DEFAULT_POLL_INTERVAL = 60_000; // 60 seconds (reduced from 30)
+const DEFAULT_POLL_INTERVAL = 120_000; // 2 minutes
 const RATE_LIMITED_POLL_INTERVAL = 300_000; // 5 minutes when rate limited
 const MAX_RETRY_DELAY = 300_000; // 5 minutes max
 let currentRetryDelay = 0;

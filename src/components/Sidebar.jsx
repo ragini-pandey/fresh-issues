@@ -244,7 +244,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                   />
                   <p className="text-[11px] text-muted-foreground">Increases rate limit to 30 req/min</p>
                 </div>
-                <SettingsToggle checked={autoRefresh} onCheckedChange={setAutoRefresh} label="Auto-refresh (30s)" />
+                <SettingsToggle checked={autoRefresh} onCheckedChange={setAutoRefresh} label="Auto-refresh (2m)" />
                 <SettingsToggle checked={sound} onCheckedChange={setSound} label="Sound alerts" />
                 <SettingsToggle checked={filters.noAssignee} onCheckedChange={(v) => updateFilters({ noAssignee: v })} label="Unassigned only" />
               </div>
