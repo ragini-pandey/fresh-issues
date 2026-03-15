@@ -55,14 +55,17 @@ export function useIssues(savedRepos = []) {
         }
         delete searchFilters.timeWindow;
 
-        const result = savedRepos.length > 0
+        const enabledRepos = savedRepos.filter((r) => !r.disabled);
+        const result = enabledRepos.length > 0
           ? await fetchIssuesForRepos(
-              savedRepos.map((r) => r.fullName),
+              enabledRepos.map((r) => r.fullName),
               searchFilters,
               token,
               pageNum
             )
-          : await fetchIssues(searchFilters, token, pageNum);
+          : savedRepos.length > 0
+            ? { items: [], totalCount: 0, rateLimitRemaining: null, rateLimitReset: null, errors: [] }
+            : await fetchIssues(searchFilters, token, pageNum);
         const items = result.items;
 
         // Handle partial failures when fetching multiple repos

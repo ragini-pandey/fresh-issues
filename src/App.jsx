@@ -35,7 +35,7 @@ function ThemeToggle() {
 function AppContent() {
   const [view, setView] = useState('issues'); // 'issues' | 'repos'
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { repos, addRepo, removeRepo, updateRepo, clearRepos } = useRepos();
+  const { repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo } = useRepos();
   const {
     issues,
     loading,
@@ -140,6 +140,7 @@ function AppContent() {
             removeRepo={removeRepo}
             updateRepo={updateRepo}
             clearRepos={clearRepos}
+            toggleRepo={toggleRepo}
           />
         )}
       </main>

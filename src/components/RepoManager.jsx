@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Pencil, Check, X, BookMarked, Github } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, clearRepos }) {
+export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo }) {
   const [newRepo, setNewRepo] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -102,9 +103,16 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-3">
-              <Badge variant="outline" className="text-sm">
-                {repos.length} {repos.length === 1 ? 'repo' : 'repos'} tracked
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-sm">
+                  {repos.filter((r) => !r.disabled).length} / {repos.length} {repos.length === 1 ? 'repo' : 'repos'} active
+                </Badge>
+                {repos.some((r) => r.disabled) && (
+                  <Badge variant="secondary" className="text-xs text-muted-foreground">
+                    {repos.filter((r) => r.disabled).length} disabled
+                  </Badge>
+                )}
+              </div>
               {repos.length > 1 && (
                 <Button
                   variant="ghost"
@@ -119,9 +127,9 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
             </div>
 
             {repos.map((repo) => (
-              <Card key={repo.id} className="group transition-all hover:border-border-light">
+              <Card key={repo.id} className={`group transition-all hover:border-border-light ${repo.disabled ? 'opacity-60' : ''}`}>
                 <CardContent className="flex items-center gap-3 p-4">
-                  <Avatar className="size-8 rounded-lg shrink-0">
+                  <Avatar className={`size-8 rounded-lg shrink-0 ${repo.disabled ? 'grayscale' : ''}`}>
                     <AvatarImage src={`https://github.com/${repo.fullName.split('/')[0]}.png?size=64`} />
                     <AvatarFallback className="rounded-lg text-xs">{repo.fullName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
@@ -152,21 +160,32 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
                           href={`https://github.com/${repo.fullName}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-semibold text-foreground hover:text-primary transition-colors no-underline truncate block"
+                          className={`text-sm font-semibold transition-colors no-underline truncate block ${
+                            repo.disabled ? 'text-muted-foreground line-through' : 'text-foreground hover:text-primary'
+                          }`}
                         >
                           {repo.fullName}
                         </a>
                         <p className="text-xs text-muted-foreground">
-                          Added {new Date(repo.addedAt).toLocaleDateString()}
+                          {repo.disabled ? 'Disabled — not scanned for issues' : `Added ${new Date(repo.addedAt).toLocaleDateString()}`}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => startEdit(repo)} title="Edit">
-                          <Pencil size={13} />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-destructive cursor-pointer" onClick={() => removeRepo(repo.id)} title="Remove">
-                          <Trash2 size={13} />
-                        </Button>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          size="sm"
+                          checked={!repo.disabled}
+                          onCheckedChange={() => toggleRepo(repo.id)}
+                          title={repo.disabled ? 'Enable repo' : 'Disable repo'}
+                          className="cursor-pointer"
+                        />
+                        <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => startEdit(repo)} title="Edit">
+                            <Pencil size={13} />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-destructive cursor-pointer" onClick={() => removeRepo(repo.id)} title="Remove">
+                            <Trash2 size={13} />
+                          </Button>
+                        </div>
                       </div>
                     </>
                   )}

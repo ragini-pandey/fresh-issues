@@ -27,11 +27,19 @@ export function useRepos() {
     if (!trimmed || !trimmed.includes('/')) return false;
     setRepos((prev) => {
       if (prev.some((r) => r.fullName.toLowerCase() === trimmed.toLowerCase())) return prev;
-      const next = [...prev, { id: Date.now().toString(), fullName: trimmed, addedAt: new Date().toISOString() }];
+      const next = [...prev, { id: Date.now().toString(), fullName: trimmed, addedAt: new Date().toISOString(), disabled: false }];
       saveRepos(next);
       return next;
     });
     return true;
+  }, []);
+
+  const toggleRepo = useCallback((id) => {
+    setRepos((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, disabled: !r.disabled } : r));
+      saveRepos(next);
+      return next;
+    });
   }, []);
 
   const removeRepo = useCallback((id) => {
@@ -58,5 +66,5 @@ export function useRepos() {
     saveRepos([]);
   }, []);
 
-  return { repos, addRepo, removeRepo, updateRepo, clearRepos };
+  return { repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo };
 }
