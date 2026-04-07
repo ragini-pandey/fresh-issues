@@ -1,6 +1,6 @@
 # Fresh Issues
 
-A lightweight React app that helps you discover fresh, beginner-friendly open source issues on GitHub. Filter by language, labels, time window, stars, and more — then jump straight into contributing.
+A lightweight React app that helps you discover fresh open source issues on GitHub. Filter by language, labels, time window, stars, and more — then jump straight into contributing.
 
 ## Features
 
