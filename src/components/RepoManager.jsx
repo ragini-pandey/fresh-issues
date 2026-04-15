@@ -126,8 +126,8 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
               )}
             </div>
 
-            {repos.map((repo) => (
-              <Card key={repo.id} className={`group transition-all hover:border-border-light ${repo.disabled ? 'opacity-60' : ''}`}>
+            {repos.map((repo, i) => (
+              <Card key={repo.id} className={`group transition-all hover:border-border-light animate-fade-in-up ${repo.disabled ? 'opacity-60' : ''}`} style={{ animationDelay: `${i * 50}ms` }}>
                 <CardContent className="flex items-center gap-3 p-4">
                   <Avatar className={`size-8 rounded-lg shrink-0 ${repo.disabled ? 'grayscale' : ''}`}>
                     <AvatarImage src={`https://github.com/${repo.fullName.split('/')[0]}.png?size=64`} />

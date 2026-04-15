@@ -64,12 +64,8 @@ export const SEARCH_ISSUES_QUERY = `
 export const POPULAR_LABELS = [
   'good first issue',
   'help wanted',
-  'beginner',
-  'easy',
-  'starter',
-  'up-for-grabs',
-  'first-timers-only',
-  'contributions welcome',
+  'bug',
+  'enhancement',
 ];
 
 /** Popular languages for filtering. */
@@ -92,11 +88,8 @@ export const LANGUAGES = [
 
 /** Time window presets (in minutes). */
 export const TIME_WINDOWS = [
-  { label: 'Last 5 min',    value: 5     },
-  { label: 'Last 15 min',   value: 15    },
-  { label: 'Last 30 min',   value: 30    },
   { label: 'Last 1 hour',   value: 60    },
-  { label: 'Last 6 hours',  value: 360   },
+  { label: 'Last 8 hours',  value: 480   },
   { label: 'Last 24 hours', value: 1440  },
   { label: 'Last 7 days',   value: 10080 },
   { label: 'Any time',      value: 0     },
@@ -105,10 +98,7 @@ export const TIME_WINDOWS = [
 /** Minimum star presets for filtering repos by popularity. */
 export const STAR_PRESETS = [
   { label: 'Any',  value: 0     },
-  { label: '10+',  value: 10    },
-  { label: '50+',  value: 50    },
   { label: '100+', value: 100   },
-  { label: '500+', value: 500   },
   { label: '1k+',  value: 1000  },
   { label: '5k+',  value: 5000  },
   { label: '10k+', value: 10000 },

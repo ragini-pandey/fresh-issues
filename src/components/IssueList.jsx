@@ -51,7 +51,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
 
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="flex flex-col gap-3.5 bg-destructive/10 border border-destructive/20 rounded-xl p-6 max-w-lg text-left animate-fade-in-up">
+        <div className="flex flex-col gap-3.5 bg-destructive/10 border border-destructive/20 rounded-xl p-6 max-w-lg text-left animate-scale-in">
           <div className="flex gap-3.5 items-start">
             <span className="text-xl">⚠️</span>
             <div className="flex-1">
@@ -115,7 +115,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
 
   if (issues.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-muted-foreground animate-fade-in-up">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-muted-foreground animate-scale-in">
         <div className="size-16 rounded-2xl bg-card border border-border flex items-center justify-center mb-4">
           <span className="text-3xl opacity-50">🔍</span>
         </div>

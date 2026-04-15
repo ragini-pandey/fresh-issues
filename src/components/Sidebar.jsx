@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { POPULAR_LABELS, LANGUAGES, TIME_WINDOWS, STAR_PRESETS, SORT_OPTIONS, COMMENT_PRESETS } from '../services/github';
-import { Search, ChevronDown, ChevronRight, Settings, Crosshair, Zap, Github, Star, ArrowUpDown, MessageSquare, BookMarked, LayoutList, X, Clock } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Settings, Crosshair, Zap, Star, ArrowUpDown, MessageSquare, BookMarked, LayoutList, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-export default function Sidebar({ filters, updateFilters, onSearch, token, setToken, autoRefresh, setAutoRefresh, sound, setSound, view, setView, repoCount, mobileOpen, onMobileClose }) {
+export default function Sidebar({ filters, updateFilters, onSearch, token, setToken, sound, setSound, view, setView, repoCount, mobileOpen, onMobileClose }) {
   const [repo, setRepo] = useState(filters.repo || '');
   const [showSettings, setShowSettings] = useState(false);
   const [sections, setSections] = useState({ time: true, lang: true, labels: true, stars: false, sort: false, comments: false });
@@ -33,7 +33,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
 
   return (
     <aside className={`
-      w-72 min-w-72 h-full bg-card border-r border-border flex flex-col overflow-hidden
+      w-76 min-w-76 h-full bg-card border-r border-border flex flex-col overflow-hidden
       fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out
       md:static md:translate-x-0 md:z-auto
       ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -41,13 +41,12 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
       {/* Brand */}
       <div className="px-5 pt-5 pb-4 border-b border-border">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-lg bg-primary/15 flex items-center justify-center">
+          <div className="flex items-center gap-2.5 animate-slide-in-left">
+            <div className="size-8 rounded-lg bg-primary/15 flex items-center justify-center transition-transform duration-200 hover:scale-110">
               <Zap size={16} className="text-primary" />
             </div>
             <div>
-              <p className="text-base font-semibold text-foreground tracking-tight">Fresh Issue</p>
-              <p className="text-xs text-muted-foreground leading-none mt-0.5">Open source starter</p>
+              <p className="text-base font-semibold text-foreground tracking-tight">Fresh Issues</p>
             </div>
           </div>
           <Button
@@ -61,11 +60,11 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
         </div>
 
         {/* Navigation */}
-        <div className="flex gap-1.5 mt-4">
+        <div className="flex gap-1.5 mt-4 animate-fade-in">
           <Button
             variant={view === 'issues' ? 'default' : 'outline'}
             size="sm"
-            className="flex-1 cursor-pointer"
+            className="flex-1 cursor-pointer transition-all duration-200"
             onClick={() => setView('issues')}
           >
             <LayoutList size={14} />
@@ -74,7 +73,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
           <Button
             variant={view === 'repos' ? 'default' : 'outline'}
             size="sm"
-            className="flex-1 cursor-pointer"
+            className="flex-1 cursor-pointer transition-all duration-200"
             onClick={() => setView('repos')}
           >
             <BookMarked size={14} />
@@ -244,7 +243,6 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                   />
                   <p className="text-[11px] text-muted-foreground">Increases rate limit to 30 req/min</p>
                 </div>
-                <SettingsToggle checked={autoRefresh} onCheckedChange={setAutoRefresh} label="Auto-refresh (2m)" />
                 <SettingsToggle checked={sound} onCheckedChange={setSound} label="Sound alerts" />
                 <SettingsToggle checked={filters.noAssignee} onCheckedChange={(v) => updateFilters({ noAssignee: v })} label="Unassigned only" />
               </div>
@@ -253,18 +251,6 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
         </div>
       </ScrollArea>
 
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-border">
-        <a
-          href="https://github.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors no-underline"
-        >
-          <Github size={12} />
-          Powered by GitHub API
-        </a>
-      </div>
     </aside>
   );
 }

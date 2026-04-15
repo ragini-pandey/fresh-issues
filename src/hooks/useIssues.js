@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchIssues, fetchIssuesForRepos, getTimeAgo } from '../services/github';
 
-const DEFAULT_POLL_INTERVAL = 120_000; // 2 minutes
-const RATE_LIMITED_POLL_INTERVAL = 300_000; // 5 minutes when rate limited
-const MAX_RETRY_DELAY = 300_000; // 5 minutes max
-let currentRetryDelay = 0;
-
 export function useIssues(savedRepos = []) {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,15 +21,13 @@ export function useIssues(savedRepos = []) {
     repo: '',
     noAssignee: true,
     minStars: 0,
-    sortBy: 'reactions',
+    sortBy: 'created',
     minComments: 0,
   });
 
   const [token, setToken] = useState(() => localStorage.getItem('gh_token') || '');
-  const [autoRefresh, setAutoRefresh] = useState(true);
   const [sound, setSound] = useState(false);
 
-  const intervalRef = useRef(null);
   const isFirstLoad = useRef(true);
 
   // Persist token
@@ -117,35 +110,13 @@ export function useIssues(savedRepos = []) {
         console.error('GitHub API Error:', err);
         
         // Check if it's a rate limit error (primary or secondary)
-        const isRateLimitError = err.isRateLimit || err.message?.includes('rate limit') || err.details?.isSecondaryRateLimit;
-        
-        if (isRateLimitError) {
-          // Implement exponential backoff
-          currentRetryDelay = currentRetryDelay === 0 ? 60_000 : Math.min(currentRetryDelay * 2, MAX_RETRY_DELAY);
-          
-          const waitMinutes = Math.round(currentRetryDelay / 60_000);
-          setError(`${err.message || 'Rate limit exceeded.'} Auto-refresh paused for ${waitMinutes} minute(s).`);
-          
-          // Temporarily disable auto-refresh
-          setAutoRefresh(false);
-          
-          // Re-enable after delay
-          setTimeout(() => {
-            setAutoRefresh(true);
-            setError(null);
-            currentRetryDelay = Math.max(0, currentRetryDelay / 2); // Gradually reduce delay
-          }, currentRetryDelay);
-          
-          if (err.details?.rateLimitReset) {
-            setRateLimit({
-              remaining: 0,
-              reset: err.details.rateLimitReset,
-            });
-          }
-        } else {
-          currentRetryDelay = 0; // Reset delay on non-rate-limit errors
-          setError(err.message || 'An unexpected error occurred while fetching issues.');
+        if (err.details?.rateLimitReset) {
+          setRateLimit({
+            remaining: 0,
+            reset: err.details.rateLimitReset,
+          });
         }
+        setError(err.message || 'An unexpected error occurred while fetching issues.');
       } finally {
         setLoading(false);
       }
@@ -153,23 +124,11 @@ export function useIssues(savedRepos = []) {
     [filters, token, seenIds, sound, savedRepos]
   );
 
-  // Initial search & auto-refresh
+  // Initial search
   useEffect(() => {
     search(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (autoRefresh) {
-      // Use longer interval if we're low on rate limit or have errors
-      const pollInterval = (rateLimit.remaining !== null && rateLimit.remaining < 10) || error
-        ? RATE_LIMITED_POLL_INTERVAL
-        : DEFAULT_POLL_INTERVAL;
-      
-      intervalRef.current = setInterval(() => search(1), pollInterval);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [autoRefresh, search, rateLimit.remaining, error]);
 
   const loadMore = useCallback(() => {
     search(page + 1, true);
@@ -204,8 +163,6 @@ export function useIssues(savedRepos = []) {
     page,
     token,
     setToken,
-    autoRefresh,
-    setAutoRefresh,
     sound,
     setSound,
     newIds,

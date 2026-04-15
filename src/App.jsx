@@ -51,8 +51,6 @@ function AppContent() {
     loadMore,
     token,
     setToken,
-    autoRefresh,
-    setAutoRefresh,
     sound,
     setSound,
     newIds,
@@ -79,8 +77,6 @@ function AppContent() {
           onSearch={(p) => { search(p); closeSidebar(); }}
           token={token}
           setToken={setToken}
-          autoRefresh={autoRefresh}
-          setAutoRefresh={setAutoRefresh}
           sound={sound}
           setSound={setSound}
           view={view}
@@ -91,7 +87,7 @@ function AppContent() {
         />
 
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <header className="border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm shrink-0 animate-slide-in-down">
           <div className="w-full flex items-center justify-between px-4 md:px-6 py-2">
             <div className="flex items-center gap-2">
               <Button
@@ -103,7 +99,7 @@ function AppContent() {
                 <Menu size={18} />
               </Button>
               <span className="text-sm font-medium text-muted-foreground">
-                {view === 'issues' ? (repos.length > 0 ? `Tracking ${repos.length} repo${repos.length === 1 ? '' : 's'}` : 'Fresh Issue') : 'My Repos'}
+                {view === 'issues' ? (repos.length > 0 ? `Tracking ${repos.length} repo${repos.length === 1 ? '' : 's'}` : '') : 'My Repos'}
               </span>
             </div>
             <div className="flex items-center gap-1 md:gap-2">
@@ -112,7 +108,6 @@ function AppContent() {
                 <StatusBar
                   rateLimit={rateLimit}
                   lastRefresh={lastRefresh}
-                  autoRefresh={autoRefresh}
                   newCount={newIds.size}
                   onRefresh={refresh}
                   loading={loading}
@@ -122,27 +117,29 @@ function AppContent() {
           </div>
         </header>
 
-        {view === 'issues' ? (
-          <IssueList
-            issues={issues}
-            loading={loading}
-            error={error}
-            warnings={warnings}
-            totalCount={totalCount}
-            loadMore={loadMore}
-            newIds={newIds}
-            onRetry={refresh}
-          />
-        ) : (
-          <RepoManager
-            repos={repos}
-            addRepo={addRepo}
-            removeRepo={removeRepo}
-            updateRepo={updateRepo}
-            clearRepos={clearRepos}
-            toggleRepo={toggleRepo}
-          />
-        )}
+        <div key={view} className="flex-1 flex flex-col overflow-hidden min-w-0 animate-fade-in-up">
+          {view === 'issues' ? (
+            <IssueList
+              issues={issues}
+              loading={loading}
+              error={error}
+              warnings={warnings}
+              totalCount={totalCount}
+              loadMore={loadMore}
+              newIds={newIds}
+              onRetry={refresh}
+            />
+          ) : (
+            <RepoManager
+              repos={repos}
+              addRepo={addRepo}
+              removeRepo={removeRepo}
+              updateRepo={updateRepo}
+              clearRepos={clearRepos}
+              toggleRepo={toggleRepo}
+            />
+          )}
+        </div>
       </main>
       </div>
     </div>
