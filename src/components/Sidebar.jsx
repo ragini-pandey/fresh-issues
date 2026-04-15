@@ -1,23 +1,22 @@
 import { useState } from 'react';
 import { POPULAR_LABELS, LANGUAGES, TIME_WINDOWS, STAR_PRESETS, SORT_OPTIONS, COMMENT_PRESETS } from '../services/github';
-import { Search, ChevronDown, ChevronRight, Settings, Crosshair, Zap, Star, ArrowUpDown, MessageSquare, BookMarked, LayoutList, X, Clock } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Settings, Zap, Star, MessageSquare, BookMarked, LayoutList, X, Clock, SlidersHorizontal, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function Sidebar({ filters, updateFilters, onSearch, token, setToken, sound, setSound, view, setView, repoCount, mobileOpen, onMobileClose }) {
   const [repo, setRepo] = useState(filters.repo || '');
   const [showSettings, setShowSettings] = useState(false);
-  const [sections, setSections] = useState({ time: true, lang: true, labels: true, stars: false, sort: false, comments: false });
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   function handleSearch(e) {
     e.preventDefault();
     updateFilters({ repo });
+    setView('issues');
     setTimeout(() => onSearch(1), 0);
   }
 
@@ -27,27 +26,28 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
     updateFilters({ labels: next });
   }
 
-  function toggleSection(key) {
-    setSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
+  const activeFilterCount = [
+    filters.language ? 1 : 0,
+    filters.minStars > 0 ? 1 : 0,
+    filters.minComments > 0 ? 1 : 0,
+    filters.sortBy !== 'created' ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
 
   return (
     <aside className={`
-      w-76 min-w-76 h-full bg-card border-r border-border flex flex-col overflow-hidden
+      w-[300px] min-w-[300px] h-full bg-sidebar border-r border-border flex flex-col overflow-hidden
       fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out
       md:static md:translate-x-0 md:z-auto
       ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
     `}>
       {/* Brand */}
-      <div className="px-5 pt-5 pb-4 border-b border-border">
+      <div className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 animate-slide-in-left">
-            <div className="size-8 rounded-lg bg-primary/15 flex items-center justify-center transition-transform duration-200 hover:scale-110">
-              <Zap size={16} className="text-primary" />
+            <div className="size-8 rounded-lg bg-secondary flex items-center justify-center">
+              <Zap size={15} className="text-secondary-foreground" />
             </div>
-            <div>
-              <p className="text-base font-semibold text-foreground tracking-tight">Fresh Issues</p>
-            </div>
+            <span className="text-base font-semibold text-foreground tracking-tight">Fresh Issues</span>
           </div>
           <Button
             variant="ghost"
@@ -58,182 +58,227 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
             <X size={16} />
           </Button>
         </div>
+      </div>
 
-        {/* Navigation */}
-        <div className="flex gap-1.5 mt-4 animate-fade-in">
-          <Button
-            variant={view === 'issues' ? 'default' : 'outline'}
-            size="sm"
-            className="flex-1 cursor-pointer transition-all duration-200"
+      {/* Navigation tabs */}
+      <div className="px-4 pb-3">
+        <div className="flex bg-muted rounded-lg p-0.5">
+          <button
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+              view === 'issues'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setView('issues')}
           >
-            <LayoutList size={14} />
+            <LayoutList size={13} />
             Issues
-          </Button>
-          <Button
-            variant={view === 'repos' ? 'default' : 'outline'}
-            size="sm"
-            className="flex-1 cursor-pointer transition-all duration-200"
+          </button>
+          <button
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+              view === 'repos'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setView('repos')}
           >
-            <BookMarked size={14} />
+            <BookMarked size={13} />
             Repos
             {repoCount > 0 && (
-              <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px] min-w-0">
+              <span className="bg-secondary text-secondary-foreground text-[10px] font-semibold px-1.5 py-0 rounded-full">
                 {repoCount}
-              </Badge>
+              </span>
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
+      <Separator />
+
       <ScrollArea className="flex-1">
-        <div className="px-4 py-4 space-y-4">
-          {/* Search */}
-          <form className="space-y-2" onSubmit={handleSearch}>
-            {/* <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-              <Input
-                type="text"
-                placeholder="owner/repo"
-                value={repo}
-                onChange={(e) => setRepo(e.target.value)}
-                className="pl-9 h-9 bg-background"
-              />
-            </div> */}
-            <Button type="submit" className="w-full cursor-pointer" size="default">
-              <Crosshair size={14} />
-              Hunt Issues
+        <div className="px-4 py-4 space-y-5">
+          {/* Search button */}
+          <form onSubmit={handleSearch}>
+            <Button type="submit" className="w-full cursor-pointer font-medium" size="default">
+              <Search size={14} />
+              Search Issues
             </Button>
           </form>
 
-          <Separator />
-
-          {/* Time Window - Compact horizontal layout */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary/80">
-              <Clock size={12} />
-              <span>Time Window</span>
-            </div>
+          {/* Time Window */}
+          <FilterSection label="Time Window" icon={<Clock size={13} />}>
             <div className="flex flex-wrap gap-1.5">
               {TIME_WINDOWS.map((tw) => (
-                <Badge
-                  key={tw.value}
-                  variant={filters.timeWindow === tw.value ? 'default' : 'outline'}
-                  className={`cursor-pointer text-[11px] ${filters.timeWindow === tw.value ? '' : 'hover:bg-secondary'}`}
-                  onClick={() => updateFilters({ timeWindow: tw.value })}
-                >
-                  {tw.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Language */}
-          <SidebarSection title="Language" open={sections.lang} onToggle={() => toggleSection('lang')}>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              <Badge
-                variant={!filters.language ? 'default' : 'outline'}
-                className={`cursor-pointer ${!filters.language ? '' : 'hover:bg-secondary'}`}
-                onClick={() => updateFilters({ language: '' })}
-              >
-                All
-              </Badge>
-              {LANGUAGES.map((lang) => (
-                <Badge
-                  key={lang}
-                  variant={filters.language === lang ? 'default' : 'outline'}
-                  className={`cursor-pointer ${filters.language === lang ? '' : 'hover:bg-secondary'}`}
-                  onClick={() => updateFilters({ language: lang })}
-                >
-                  {lang}
-                </Badge>
-              ))}
-            </div>
-          </SidebarSection>
-
-          {/* Labels */}
-          <SidebarSection title="Labels" open={sections.labels} onToggle={() => toggleSection('labels')}>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {POPULAR_LABELS.map((label) => (
-                <Badge
-                  key={label}
-                  variant={(filters.labels || []).includes(label) ? 'default' : 'outline'}
-                  className={`cursor-pointer ${(filters.labels || []).includes(label) ? '' : 'hover:bg-secondary'}`}
-                  onClick={() => toggleLabel(label)}
-                >
-                  {label}
-                </Badge>
-              ))}
-            </div>
-          </SidebarSection>
-
-          {/* Min Stars */}
-          <SidebarSection title="Min Stars" open={sections.stars} onToggle={() => toggleSection('stars')}>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {STAR_PRESETS.map((preset) => (
-                <Badge
-                  key={preset.value}
-                  variant={filters.minStars === preset.value ? 'default' : 'outline'}
-                  className={`cursor-pointer ${filters.minStars === preset.value ? '' : 'hover:bg-secondary'}`}
-                  onClick={() => updateFilters({ minStars: preset.value })}
-                >
-                  {preset.value > 0 && <Star size={10} className="mr-0.5" />}
-                  {preset.label}
-                </Badge>
-              ))}
-            </div>
-          </SidebarSection>
-
-          {/* Sort By */}
-          <SidebarSection title="Sort By" open={sections.sort} onToggle={() => toggleSection('sort')}>
-            <div className="flex flex-col gap-0.5">
-              {SORT_OPTIONS.map((opt) => (
                 <button
-                  key={opt.value}
-                  onClick={() => updateFilters({ sortBy: opt.value })}
-                  className={`flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors text-left cursor-pointer ${
-                    filters.sortBy === opt.value
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  key={tw.value}
+                  onClick={() => updateFilters({ timeWindow: tw.value })}
+                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                    filters.timeWindow === tw.value
+                      ? 'bg-secondary border-secondary text-secondary-foreground'
+                      : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
                   }`}
                 >
-                  <span className={`size-1.5 rounded-full shrink-0 transition-colors ${
-                    filters.sortBy === opt.value ? 'bg-primary shadow-[0_0_6px_rgba(80,250,123,0.5)]' : 'bg-border-light'
-                  }`} />
-                  {opt.label}
+                  {tw.label}
                 </button>
               ))}
             </div>
-          </SidebarSection>
+          </FilterSection>
 
-          {/* Min Comments */}
-          <SidebarSection title="Min Comments" open={sections.comments} onToggle={() => toggleSection('comments')}>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {COMMENT_PRESETS.map((preset) => (
-                <Badge
-                  key={preset.value}
-                  variant={filters.minComments === preset.value ? 'default' : 'outline'}
-                  className={`cursor-pointer ${filters.minComments === preset.value ? '' : 'hover:bg-secondary'}`}
-                  onClick={() => updateFilters({ minComments: preset.value })}
+          {/* Labels */}
+          <FilterSection label="Labels">
+            <div className="flex flex-wrap gap-1.5">
+              {POPULAR_LABELS.map((label) => (
+                <button
+                  key={label}
+                  onClick={() => toggleLabel(label)}
+                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                    (filters.labels || []).includes(label)
+                      ? 'bg-secondary border-secondary text-secondary-foreground'
+                      : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                  }`}
                 >
-                  {preset.value > 0 && <MessageSquare size={10} className="mr-0.5" />}
-                  {preset.label}
-                </Badge>
+                  {label}
+                </button>
               ))}
             </div>
-          </SidebarSection>
+          </FilterSection>
+
+          {/* Language */}
+          <FilterSection label="Language">
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => updateFilters({ language: '' })}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                  !filters.language
+                    ? 'bg-secondary border-secondary text-secondary-foreground'
+                    : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                }`}
+              >
+                All
+              </button>
+              {LANGUAGES.map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => updateFilters({ language: lang })}
+                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                    filters.language === lang
+                      ? 'bg-secondary border-secondary text-secondary-foreground'
+                      : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+          </FilterSection>
+
+          <Separator />
+
+          {/* Advanced Filters */}
+          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
+              <span className="flex items-center gap-1.5">
+                <SlidersHorizontal size={13} />
+                More Filters
+                {activeFilterCount > 0 && (
+                  <span className="bg-secondary text-secondary-foreground text-[10px] font-semibold px-1.5 rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </span>
+              {showAdvanced ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="space-y-4 pt-3">
+                {/* Sort By */}
+                <FilterSection label="Sort By">
+                  <div className="flex flex-wrap gap-1.5">
+                    {SORT_OPTIONS.filter((opt) => !opt.reposOnly || repoCount > 0).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updateFilters({ sortBy: opt.value })}
+                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                          filters.sortBy === opt.value
+                            ? 'bg-secondary border-secondary text-secondary-foreground'
+                            : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </FilterSection>
+
+                {/* Min Stars */}
+                <FilterSection label="Min Stars">
+                  <div className="flex flex-wrap gap-1.5">
+                    {STAR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.value}
+                        onClick={() => updateFilters({ minStars: preset.value })}
+                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
+                          filters.minStars === preset.value
+                            ? 'bg-secondary border-secondary text-secondary-foreground'
+                            : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                        }`}
+                      >
+                        {preset.value > 0 && <Star size={9} />}
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </FilterSection>
+
+                {/* Min Comments */}
+                <FilterSection label="Min Comments">
+                  <div className="flex flex-wrap gap-1.5">
+                    {COMMENT_PRESETS.map((preset) => (
+                      <button
+                        key={preset.value}
+                        onClick={() => updateFilters({ minComments: preset.value })}
+                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
+                          filters.minComments === preset.value
+                            ? 'bg-secondary border-secondary text-secondary-foreground'
+                            : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                        }`}
+                      >
+                        {preset.value > 0 && <MessageSquare size={9} />}
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </FilterSection>
+
+                {/* Toggles */}
+                <div className="space-y-2.5 pt-1">
+                  <SettingsToggle
+                    checked={filters.noAssignee}
+                    onCheckedChange={(v) => updateFilters({ noAssignee: v })}
+                    label="Unassigned only"
+                  />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
 
           {/* Settings */}
           <Collapsible open={showSettings} onOpenChange={setShowSettings}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full py-1.5 text-xs font-bold uppercase tracking-widest text-primary/80 hover:text-primary transition-colors cursor-pointer">
-              <span className="flex items-center gap-1.5"><Settings size={12} />Settings</span>
-              {showSettings ? <ChevronDown size={13} className="text-muted-foreground" /> : <ChevronRight size={13} className="text-muted-foreground" />}
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
+              <span className="flex items-center gap-1.5">
+                <Settings size={13} />
+                Settings
+              </span>
+              {showSettings ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="space-y-3.5 pt-2 pb-1">
+              <div className="space-y-3 pt-3">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-muted-foreground">GitHub Token</label>
+                  <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Key size={11} />
+                    GitHub Token
+                  </label>
                   <Input
                     type="password"
                     placeholder="ghp_xxxxx"
@@ -241,39 +286,33 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                     onChange={(e) => setToken(e.target.value)}
                     className="h-8 text-xs font-mono bg-background"
                   />
-                  <p className="text-[11px] text-muted-foreground">Increases rate limit to 30 req/min</p>
+                  <p className="text-[10px] text-muted-foreground/70">Increases rate limit to 30 req/min</p>
                 </div>
                 <SettingsToggle checked={sound} onCheckedChange={setSound} label="Sound alerts" />
-                <SettingsToggle checked={filters.noAssignee} onCheckedChange={(v) => updateFilters({ noAssignee: v })} label="Unassigned only" />
               </div>
             </CollapsibleContent>
           </Collapsible>
         </div>
       </ScrollArea>
-
     </aside>
   );
 }
 
-function SidebarSection({ title, open, onToggle, children }) {
+function FilterSection({ label, icon, children }) {
   return (
-    <Collapsible open={open} onOpenChange={onToggle}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-1.5 text-xs font-bold uppercase tracking-widest text-primary/80 hover:text-primary transition-colors cursor-pointer">
-        <span>{title}</span>
-        {open ? <ChevronDown size={13} className="text-muted-foreground" /> : <ChevronRight size={13} className="text-muted-foreground" />}
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="pt-1 pb-1">
-          {children}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+    <div className="space-y-2">
+      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+        {icon}
+        {label}
+      </span>
+      {children}
+    </div>
   );
 }
 
 function SettingsToggle({ checked, onCheckedChange, label }) {
   return (
-    <label className="flex items-center justify-between gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+    <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
       <span>{label}</span>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </label>

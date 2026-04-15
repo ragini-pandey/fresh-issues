@@ -242,12 +242,15 @@ export async function fetchIssuesForReposGraphQL(repoNames, filters, token, page
     if (!seen.has(item.id)) { seen.add(item.id); unique.push(item); }
   }
 
-  unique.sort((a, b) => {
-    if (sortParam === 'comments') return b.comments - a.comments;
-    if (sortParam === 'created')  return new Date(b.createdAt) - new Date(a.createdAt);
-    if (sortParam === 'updated')  return new Date(b.updatedAt) - new Date(a.updatedAt);
-    return b.reactions - a.reactions || new Date(b.createdAt) - new Date(a.createdAt);
-  });
+  // repo-order keeps insertion order (repos fetched sequentially by user-defined order)
+  if (sortParam !== 'repo-order') {
+    unique.sort((a, b) => {
+      if (sortParam === 'comments') return b.comments - a.comments;
+      if (sortParam === 'created')  return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortParam === 'updated')  return new Date(b.updatedAt) - new Date(a.updatedAt);
+      return b.reactions - a.reactions || new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  }
 
   return { totalCount, items: unique, rateLimitRemaining, rateLimitReset, errors };
 }

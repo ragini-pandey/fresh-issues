@@ -61,10 +61,20 @@ export function useRepos() {
     return true;
   }, []);
 
+  const reorderRepos = useCallback((oldIndex, newIndex) => {
+    setRepos((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(oldIndex, 1);
+      next.splice(newIndex, 0, moved);
+      saveRepos(next);
+      return next;
+    });
+  }, []);
+
   const clearRepos = useCallback(() => {
     setRepos([]);
     saveRepos([]);
   }, []);
 
-  return { repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo };
+  return { repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo, reorderRepos };
 }

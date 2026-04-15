@@ -106,6 +106,7 @@ export const STAR_PRESETS = [
 
 /** Sort options for issue results. */
 export const SORT_OPTIONS = [
+  { label: 'Repo order',       value: 'repo-order', reposOnly: true },
   { label: 'Most reactions',   value: 'reactions' },
   { label: 'Most comments',    value: 'comments'  },
   { label: 'Newest',           value: 'created'   },

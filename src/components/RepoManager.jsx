@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Pencil, Check, X, BookMarked, Github } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, X, BookMarked, Github, GripVertical } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,123 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo }) {
+function SortableRepoCard({ repo, index, editingId, editValue, setEditValue, saveEdit, cancelEdit, startEdit, toggleRepo, removeRepo }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: repo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    animationDelay: `${index * 50}ms`,
+    zIndex: isDragging ? 50 : undefined,
+    position: isDragging ? 'relative' : undefined,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={`group transition-all hover:border-border-light animate-fade-in-up ${repo.disabled ? 'opacity-60' : ''} ${isDragging ? 'shadow-lg opacity-90' : ''}`}
+    >
+      <CardContent className="flex items-center gap-3 p-4">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover:text-foreground shrink-0 -ml-1"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical size={14} />
+        </button>
+
+        <Avatar className={`size-8 rounded-lg shrink-0 ${repo.disabled ? 'grayscale' : ''}`}>
+          <AvatarImage src={`https://github.com/${repo.fullName.split('/')[0]}.png?size=64`} />
+          <AvatarFallback className="rounded-lg text-xs">{repo.fullName.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+
+        {editingId === repo.id ? (
+          <div className="flex-1 flex items-center gap-2">
+            <Input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="h-8 text-sm bg-background"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveEdit(repo.id);
+                if (e.key === 'Escape') cancelEdit();
+              }}
+            />
+            <Button size="icon" variant="ghost" className="size-7 text-primary cursor-pointer" onClick={() => saveEdit(repo.id)}>
+              <Check size={14} />
+            </Button>
+            <Button size="icon" variant="ghost" className="size-7 text-muted-foreground cursor-pointer" onClick={cancelEdit}>
+              <X size={14} />
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 min-w-0">
+              <a
+                href={`https://github.com/${repo.fullName}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-sm font-semibold transition-colors no-underline truncate block ${
+                  repo.disabled ? 'text-muted-foreground line-through' : 'text-foreground hover:text-primary'
+                }`}
+              >
+                {repo.fullName}
+              </a>
+              <p className="text-xs text-muted-foreground">
+                {repo.disabled ? 'Disabled — not scanned for issues' : `Added ${new Date(repo.addedAt).toLocaleDateString()}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                size="sm"
+                checked={!repo.disabled}
+                onCheckedChange={() => toggleRepo(repo.id)}
+                title={repo.disabled ? 'Enable repo' : 'Disable repo'}
+                className="cursor-pointer"
+              />
+              <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => startEdit(repo)} title="Edit">
+                  <Pencil size={13} />
+                </Button>
+                <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-destructive cursor-pointer" onClick={() => removeRepo(repo.id)} title="Remove">
+                  <Trash2 size={13} />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo, reorderRepos }) {
   const [newRepo, setNewRepo] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -53,13 +168,27 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
     setEditValue('');
   }
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function handleDragEnd(event) {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIndex = repos.findIndex((r) => r.id === active.id);
+      const newIndex = repos.findIndex((r) => r.id === over.id);
+      reorderRepos(oldIndex, newIndex);
+    }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-1">
-          <div className="size-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-            <BookMarked size={20} className="text-primary" />
+          <div className="size-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+            <BookMarked size={20} className="text-foreground" />
           </div>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl font-bold text-foreground">My Repositories</h1>
@@ -92,11 +221,11 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
         {/* Repo List */}
         {repos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground animate-fade-in-up">
-            <div className="size-16 rounded-2xl bg-card border border-border flex items-center justify-center mb-4">
-              <BookMarked size={28} className="opacity-40" />
+            <div className="size-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <BookMarked size={24} className="text-muted-foreground/40" />
             </div>
             <p className="text-sm font-medium text-foreground/70">No repos added yet</p>
-            <p className="text-xs text-muted-foreground mt-1 max-w-xs text-center">
+            <p className="text-xs text-muted-foreground mt-1.5 max-w-xs text-center leading-relaxed">
               Add repositories above to track their open issues. When repos are saved, only those repos will be searched.
             </p>
           </div>
@@ -126,72 +255,29 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
               )}
             </div>
 
-            {repos.map((repo, i) => (
-              <Card key={repo.id} className={`group transition-all hover:border-border-light animate-fade-in-up ${repo.disabled ? 'opacity-60' : ''}`} style={{ animationDelay: `${i * 50}ms` }}>
-                <CardContent className="flex items-center gap-3 p-4">
-                  <Avatar className={`size-8 rounded-lg shrink-0 ${repo.disabled ? 'grayscale' : ''}`}>
-                    <AvatarImage src={`https://github.com/${repo.fullName.split('/')[0]}.png?size=64`} />
-                    <AvatarFallback className="rounded-lg text-xs">{repo.fullName.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-
-                  {editingId === repo.id ? (
-                    <div className="flex-1 flex items-center gap-2">
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="h-8 text-sm bg-background"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit(repo.id);
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                      />
-                      <Button size="icon" variant="ghost" className="size-7 text-primary cursor-pointer" onClick={() => saveEdit(repo.id)}>
-                        <Check size={14} />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="size-7 text-muted-foreground cursor-pointer" onClick={cancelEdit}>
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex-1 min-w-0">
-                        <a
-                          href={`https://github.com/${repo.fullName}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`text-sm font-semibold transition-colors no-underline truncate block ${
-                            repo.disabled ? 'text-muted-foreground line-through' : 'text-foreground hover:text-primary'
-                          }`}
-                        >
-                          {repo.fullName}
-                        </a>
-                        <p className="text-xs text-muted-foreground">
-                          {repo.disabled ? 'Disabled — not scanned for issues' : `Added ${new Date(repo.addedAt).toLocaleDateString()}`}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          size="sm"
-                          checked={!repo.disabled}
-                          onCheckedChange={() => toggleRepo(repo.id)}
-                          title={repo.disabled ? 'Enable repo' : 'Disable repo'}
-                          className="cursor-pointer"
-                        />
-                        <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                          <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => startEdit(repo)} title="Edit">
-                            <Pencil size={13} />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-destructive cursor-pointer" onClick={() => removeRepo(repo.id)} title="Remove">
-                            <Trash2 size={13} />
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={repos.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+                {repos.map((repo, i) => (
+                  <SortableRepoCard
+                    key={repo.id}
+                    repo={repo}
+                    index={i}
+                    editingId={editingId}
+                    editValue={editValue}
+                    setEditValue={setEditValue}
+                    saveEdit={saveEdit}
+                    cancelEdit={cancelEdit}
+                    startEdit={startEdit}
+                    toggleRepo={toggleRepo}
+                    removeRepo={removeRepo}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         )}
       </div>

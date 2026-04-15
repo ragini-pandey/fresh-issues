@@ -1,27 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import IssueCard from './IssueCard';
-import { Loader2, ArrowUp, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, ArrowUp, AlertTriangle, RefreshCw, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Skeleton className="size-5 rounded-md" />
-          <Skeleton className="h-4 w-40" />
-        </div>
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-20 rounded-full" />
-          <Skeleton className="h-5 w-16 rounded-full" />
-        </div>
+    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Skeleton className="size-5 rounded-md" />
+        <Skeleton className="h-3.5 w-36" />
       </div>
-      <div className="px-5 py-3 border-t border-border/60 bg-background/30 rounded-b-xl flex gap-4">
-        <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-3.5 w-3/4" />
+      <div className="flex gap-2">
+        <Skeleton className="h-5 w-20 rounded-full" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+      <div className="flex gap-3 pt-1">
         <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-12" />
         <Skeleton className="h-3 w-20 ml-auto" />
       </div>
     </div>
@@ -116,11 +114,11 @@ export default function IssueList({ issues, loading, error, warnings = [], total
   if (issues.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-muted-foreground animate-scale-in">
-        <div className="size-16 rounded-2xl bg-card border border-border flex items-center justify-center mb-4">
-          <span className="text-3xl opacity-50">🔍</span>
+        <div className="size-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+          <Search size={22} className="text-muted-foreground/40" />
         </div>
         <p className="text-sm font-medium text-foreground/70">No issues found</p>
-        <p className="text-xs text-muted-foreground mt-1 max-w-xs text-center">Try a wider time window or fewer label filters to discover more issues.</p>
+        <p className="text-xs text-muted-foreground mt-1.5 max-w-xs text-center leading-relaxed">Try a wider time window or fewer label filters to discover more issues.</p>
       </div>
     );
   }
@@ -152,8 +150,8 @@ export default function IssueList({ issues, loading, error, warnings = [], total
 
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-primary">{totalCount.toLocaleString()} issues</span>
-            {loading && <Loader2 size={13} className="animate-spin text-primary" />}
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{totalCount.toLocaleString()} issues</span>
+            {loading && <Loader2 size={13} className="animate-spin text-primary/70" />}
           </div>
         </div>
         <div className="space-y-3">
@@ -169,7 +167,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
               onClick={loadMore}
               disabled={loading}
               variant="outline"
-              className="px-8 py-2.5 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 cursor-pointer"
+              className="px-8 py-2.5 border-border hover:border-primary/30 text-muted-foreground hover:text-primary hover:bg-primary/5 cursor-pointer transition-all"
             >
               {loading ? 'Loading…' : 'Load More'}
             </Button>

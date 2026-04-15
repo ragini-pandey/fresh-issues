@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Heart, ArrowUpRight } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export default function IssueCard({ issue, isNew, index = 0 }) {
@@ -8,107 +7,92 @@ export default function IssueCard({ issue, isNew, index = 0 }) {
   const owner = issue.repoFullName.split('/')[0];
 
   return (
-    <div
-      className={`group relative rounded-xl border bg-card overflow-hidden cursor-pointer
-        transition-all duration-300 ease-in-out
-        hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:-translate-y-0.5
-        ${isNew ? 'border-primary/30 bg-primary/[0.03] animate-pulse-green' : 'border-border hover:border-border-light'}`}
+    <a
+      href={issue.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`group block rounded-xl border bg-card overflow-hidden
+        transition-all duration-200 ease-in-out no-underline
+        hover:shadow-md hover:shadow-black/[0.04] dark:hover:shadow-black/20 hover:-translate-y-px
+        ${isNew ? 'border-secondary bg-secondary/10 animate-pulse-green' : 'border-border hover:border-border-light'}`}
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      {/* Collapsed view — always visible */}
-      <div className="flex items-center gap-3 px-4 py-3.5">
-        <Avatar className="size-6 rounded-md shrink-0">
-          <AvatarImage src={`https://github.com/${owner}.png?size=32`} />
-          <AvatarFallback className="rounded-md text-[8px]">{owner.charAt(0)}</AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0 pr-2">
+      <div className="p-4">
+        {/* Top row: repo info + time */}
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[11px] text-muted-foreground font-mono truncate">{issue.repoFullName}</span>
+            <Avatar className="size-5 rounded-md shrink-0">
+              <AvatarImage src={`https://github.com/${owner}.png?size=32`} />
+              <AvatarFallback className="rounded-md text-[8px] font-medium">{owner.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground truncate">{issue.repoFullName}</span>
             <span className="text-[11px] text-muted-foreground/40 font-mono shrink-0">#{issue.number}</span>
           </div>
-          <p className="text-sm font-medium text-foreground/90 truncate leading-snug mt-0.5">
-            {issue.title}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 shrink-0 text-xs text-muted-foreground">
-          {issue.comments > 0 && (
-            <span className="flex items-center gap-1">
-              <MessageSquare size={11} />{issue.comments}
-            </span>
-          )}
-          <span className="hidden sm:block text-muted-foreground/40 text-[11px] whitespace-nowrap">{timeAgo}</span>
-          <a
-            href={issue.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all no-underline shrink-0"
-          >
-            <ArrowUpRight size={13} />
-          </a>
-        </div>
-      </div>
-
-      {/* Expanded details — revealed on hover */}
-      <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300 ease-in-out">
-        <div className="overflow-hidden">
-          <div className="px-4 pb-3 pt-0 border-t border-border/50">
-            {/* Body preview */}
-            {issue.body && (
-              <p className="text-xs text-muted-foreground leading-relaxed mt-2.5 mb-2.5 line-clamp-2">
-                {issue.body}
-              </p>
-            )}
-
-            {/* Labels */}
-            {issue.labels.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                {issue.labels.map((label) => (
-                  <Badge
-                    key={label.name}
-                    variant="outline"
-                    className="text-[10px] px-1.5 py-0 font-medium"
-                    style={{
-                      backgroundColor: `#${label.color}12`,
-                      color: `#${label.color}`,
-                      borderColor: `#${label.color}25`,
-                    }}
-                  >
-                    {label.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Footer meta */}
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-              <span className="flex items-center gap-1.5">
-                <span className="size-1 rounded-full bg-primary/60" />
-                {timeAgo}
-              </span>
-              {issue.reactions > 0 && (
-                <span className="flex items-center gap-1">
-                  <Heart size={10} />{issue.reactions}
-                </span>
-              )}
-              <a
-                href={issue.user.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors no-underline"
-              >
-                <Avatar className="size-4">
-                  <AvatarImage src={issue.user.avatar} alt={issue.user.login} />
-                  <AvatarFallback className="text-[6px]">{issue.user.login.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span>{issue.user.login}</span>
-              </a>
-            </div>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap hidden sm:block">{timeAgo}</span>
+            <ArrowUpRight size={14} className="text-muted-foreground/30 group-hover:text-foreground transition-colors shrink-0" />
           </div>
         </div>
+
+        {/* Title */}
+        <h3 className="text-[13px] font-medium text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-foreground/90">
+          {issue.title}
+        </h3>
+
+        {/* Body preview */}
+        {issue.body && (
+          <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2">
+            {issue.body}
+          </p>
+        )}
+
+        {/* Labels */}
+        {issue.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {issue.labels.slice(0, 4).map((label) => (
+              <span
+                key={label.name}
+                className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                style={{
+                  backgroundColor: `#${label.color}18`,
+                  color: `#${label.color}`,
+                }}
+              >
+                {label.name}
+              </span>
+            ))}
+            {issue.labels.length > 4 && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium text-muted-foreground bg-muted">
+                +{issue.labels.length - 4}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Bottom meta row */}
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span className="sm:hidden text-muted-foreground/60">{timeAgo}</span>
+          {issue.reactions > 0 && (
+            <span className="flex items-center gap-1">
+              <Heart size={11} />
+              {issue.reactions}
+            </span>
+          )}
+          {issue.comments > 0 && (
+            <span className="flex items-center gap-1">
+              <MessageSquare size={11} />
+              {issue.comments}
+            </span>
+          )}
+          <span className="ml-auto flex items-center gap-1.5">
+            <Avatar className="size-4">
+              <AvatarImage src={issue.user.avatar} alt={issue.user.login} />
+              <AvatarFallback className="text-[6px]">{issue.user.login.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="text-muted-foreground/70">{issue.user.login}</span>
+          </span>
+        </div>
       </div>
-    </div>
+    </a>
   );
 }
