@@ -102,7 +102,7 @@ To avoid rate limiting issues:
 
 ### Issues List
 
-![Issues list view](https://github.com/ragini-pandey/fresh-issues/blob/main/public/fresh-issue-list.png)
+![Issues list view](https://github.com/ragini-pandey/fresh-issues/blob/main/public/fresh-issues-list.png)
 
 ## Project Structure
 
