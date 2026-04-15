@@ -103,18 +103,18 @@ function AppContent() {
                   repos.length > 0 ? (
                     <div className="flex items-center gap-1.5">
                       <Zap size={12} className="text-primary" />
-                      <span className="text-xs font-medium text-foreground/80">
+                      <span className="text-sm font-medium text-foreground/80">
                         {repos.filter(r => !r.disabled).length} <span className="text-muted-foreground">repo{repos.filter(r => !r.disabled).length === 1 ? '' : 's'}</span>
                       </span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5">
-                      <Globe size={12} className="text-muted-foreground" />
-                      <span className="text-xs font-medium text-muted-foreground">Global</span>
+                      <Globe size={13} className="text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Global</span>
                     </div>
                   )
                 ) : (
-                  <span className="text-xs font-semibold text-foreground">My Repos</span>
+                  <span className="text-sm font-semibold text-foreground">My Repos</span>
                 )}
               </div>
             </div>

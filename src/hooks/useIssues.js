@@ -14,7 +14,7 @@ export function useIssues(savedRepos = []) {
   const [newIds, setNewIds] = useState(new Set());
 
   const [filters, setFilters] = useState({
-    labels: ['good first issue'],
+    labels: [],
     language: '',
     timeWindow: 1440, // default: last 24 hours
     keyword: '',

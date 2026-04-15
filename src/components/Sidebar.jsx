@@ -35,7 +35,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
 
   return (
     <aside className={`
-      w-[300px] min-w-[300px] h-full bg-sidebar border-r border-border flex flex-col overflow-hidden
+      w-[320px] min-w-[320px] h-full bg-sidebar border-r border-border flex flex-col overflow-hidden
       fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out
       md:static md:translate-x-0 md:z-auto
       ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -44,10 +44,10 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 animate-slide-in-left">
-            <div className="size-8 rounded-lg bg-secondary flex items-center justify-center">
-              <Zap size={15} className="text-secondary-foreground" />
+            <div className="size-9 rounded-lg bg-secondary flex items-center justify-center">
+              <Zap size={16} className="text-secondary-foreground" />
             </div>
-            <span className="text-base font-semibold text-foreground tracking-tight">Fresh Issues</span>
+            <span className="text-lg font-semibold text-foreground tracking-tight">Fresh Issues</span>
           </div>
           <Button
             variant="ghost"
@@ -64,28 +64,28 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
       <div className="px-4 pb-3">
         <div className="flex bg-muted rounded-lg p-0.5">
           <button
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-md transition-all cursor-pointer ${
               view === 'issues'
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
             onClick={() => setView('issues')}
           >
-            <LayoutList size={13} />
+            <LayoutList size={14} />
             Issues
           </button>
           <button
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-md transition-all cursor-pointer ${
               view === 'repos'
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
             onClick={() => setView('repos')}
           >
-            <BookMarked size={13} />
+            <BookMarked size={14} />
             Repos
             {repoCount > 0 && (
-              <span className="bg-secondary text-secondary-foreground text-[10px] font-semibold px-1.5 py-0 rounded-full">
+              <span className="bg-secondary text-secondary-foreground text-xs font-semibold px-1.5 py-0 rounded-full">
                 {repoCount}
               </span>
             )}
@@ -99,20 +99,20 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
         <div className="px-4 py-4 space-y-5">
           {/* Search button */}
           <form onSubmit={handleSearch}>
-            <Button type="submit" className="w-full cursor-pointer font-medium" size="default">
-              <Search size={14} />
+            <Button type="submit" className="w-full cursor-pointer font-medium text-sm" size="default">
+              <Search size={15} />
               Search Issues
             </Button>
           </form>
 
           {/* Time Window */}
-          <FilterSection label="Time Window" icon={<Clock size={13} />}>
+          <FilterSection label="Time Window" icon={<Clock size={14} />}>
             <div className="flex flex-wrap gap-1.5">
               {TIME_WINDOWS.map((tw) => (
                 <button
                   key={tw.value}
                   onClick={() => updateFilters({ timeWindow: tw.value })}
-                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
                     filters.timeWindow === tw.value
                       ? 'bg-secondary border-secondary text-secondary-foreground'
                       : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -131,7 +131,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                 <button
                   key={label}
                   onClick={() => toggleLabel(label)}
-                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
                     (filters.labels || []).includes(label)
                       ? 'bg-secondary border-secondary text-secondary-foreground'
                       : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -148,7 +148,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => updateFilters({ language: '' })}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
                   !filters.language
                     ? 'bg-secondary border-secondary text-secondary-foreground'
                     : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -160,7 +160,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                 <button
                   key={lang}
                   onClick={() => updateFilters({ language: lang })}
-                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
                     filters.language === lang
                       ? 'bg-secondary border-secondary text-secondary-foreground'
                       : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -176,17 +176,17 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
 
           {/* Advanced Filters */}
           <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
               <span className="flex items-center gap-1.5">
-                <SlidersHorizontal size={13} />
+                <SlidersHorizontal size={14} />
                 More Filters
                 {activeFilterCount > 0 && (
-                  <span className="bg-secondary text-secondary-foreground text-[10px] font-semibold px-1.5 rounded-full">
+                  <span className="bg-secondary text-secondary-foreground text-xs font-semibold px-1.5 rounded-full">
                     {activeFilterCount}
                   </span>
                 )}
               </span>
-              {showAdvanced ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {showAdvanced ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="space-y-4 pt-3">
@@ -197,7 +197,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                       <button
                         key={opt.value}
                         onClick={() => updateFilters({ sortBy: opt.value })}
-                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
                           filters.sortBy === opt.value
                             ? 'bg-secondary border-secondary text-secondary-foreground'
                             : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -216,7 +216,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                       <button
                         key={preset.value}
                         onClick={() => updateFilters({ minStars: preset.value })}
-                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
                           filters.minStars === preset.value
                             ? 'bg-secondary border-secondary text-secondary-foreground'
                             : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -236,7 +236,7 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                       <button
                         key={preset.value}
                         onClick={() => updateFilters({ minComments: preset.value })}
-                        className={`px-2.5 py-1 text-[11px] font-medium rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
                           filters.minComments === preset.value
                             ? 'bg-secondary border-secondary text-secondary-foreground'
                             : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
@@ -265,18 +265,18 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
 
           {/* Settings */}
           <Collapsible open={showSettings} onOpenChange={setShowSettings}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
               <span className="flex items-center gap-1.5">
-                <Settings size={13} />
+                <Settings size={14} />
                 Settings
               </span>
-              {showSettings ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {showSettings ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="space-y-3 pt-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                    <Key size={11} />
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Key size={12} />
                     GitHub Token
                   </label>
                   <Input
@@ -284,9 +284,9 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
                     placeholder="ghp_xxxxx"
                     value={token}
                     onChange={(e) => setToken(e.target.value)}
-                    className="h-8 text-xs font-mono bg-background"
+                    className="h-9 text-sm font-mono bg-background"
                   />
-                  <p className="text-[10px] text-muted-foreground/70">Increases rate limit to 30 req/min</p>
+                  <p className="text-xs text-muted-foreground/70">Increases rate limit to 30 req/min</p>
                 </div>
                 <SettingsToggle checked={sound} onCheckedChange={setSound} label="Sound alerts" />
               </div>
@@ -300,8 +300,8 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
 
 function FilterSection({ label, icon, children }) {
   return (
-    <div className="space-y-2">
-      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+    <div className="space-y-2.5">
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
         {icon}
         {label}
       </span>
@@ -312,7 +312,7 @@ function FilterSection({ label, icon, children }) {
 
 function SettingsToggle({ checked, onCheckedChange, label }) {
   return (
-    <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+    <label className="flex items-center justify-between gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
       <span>{label}</span>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </label>

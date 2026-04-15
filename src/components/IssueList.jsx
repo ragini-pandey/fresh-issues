@@ -53,12 +53,12 @@ export default function IssueList({ issues, loading, error, warnings = [], total
           <div className="flex gap-3.5 items-start">
             <span className="text-xl">⚠️</span>
             <div className="flex-1">
-              <strong className="text-destructive block mb-1">Error fetching issues</strong>
+              <strong className="text-destructive block mb-1.5 text-base">Error fetching issues</strong>
               <p className="text-sm text-foreground/80 leading-relaxed">{error}</p>
               
               {isRateLimitError && (
                 <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     💡 <strong>Tip:</strong> Add a GitHub Personal Access Token in Settings to increase your rate limit from 60 to 5,000 requests per hour.
                   </p>
                 </div>
@@ -66,7 +66,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
               
               {isAuthError && (
                 <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     💡 <strong>Tip:</strong> Check your GitHub token in Settings and ensure it has the correct permissions.
                   </p>
                 </div>
@@ -74,7 +74,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
               
               {isNetworkError && (
                 <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     💡 <strong>Tip:</strong> Check your internet connection and try again.
                   </p>
                 </div>
@@ -117,8 +117,8 @@ export default function IssueList({ issues, loading, error, warnings = [], total
         <div className="size-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
           <Search size={22} className="text-muted-foreground/40" />
         </div>
-        <p className="text-sm font-medium text-foreground/70">No issues found</p>
-        <p className="text-xs text-muted-foreground mt-1.5 max-w-xs text-center leading-relaxed">Try a wider time window or fewer label filters to discover more issues.</p>
+        <p className="text-base font-medium text-foreground/70">No issues found</p>
+        <p className="text-sm text-muted-foreground mt-1.5 max-w-xs text-center leading-relaxed">Try a wider time window or fewer label filters to discover more issues.</p>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
                 <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400 mb-1">
                   Some repositories failed to load
                 </p>
-                <div className="text-xs text-yellow-700 dark:text-yellow-500 space-y-1">
+                <div className="text-sm text-yellow-700 dark:text-yellow-500 space-y-1">
                   {warnings.slice(0, 3).map((warning, idx) => (
                     <p key={idx} className="font-mono">{warning}</p>
                   ))}
@@ -150,7 +150,7 @@ export default function IssueList({ issues, loading, error, warnings = [], total
 
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{totalCount.toLocaleString()} issues</span>
+            <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{totalCount.toLocaleString()} issues</span>
             {loading && <Loader2 size={13} className="animate-spin text-primary/70" />}
           </div>
         </div>

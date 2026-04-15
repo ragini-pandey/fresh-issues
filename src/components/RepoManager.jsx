@@ -58,9 +58,9 @@ function SortableRepoCard({ repo, index, editingId, editValue, setEditValue, sav
           <GripVertical size={14} />
         </button>
 
-        <Avatar className={`size-8 rounded-lg shrink-0 ${repo.disabled ? 'grayscale' : ''}`}>
+        <Avatar className={`size-9 rounded-lg shrink-0 ${repo.disabled ? 'grayscale' : ''}`}>
           <AvatarImage src={`https://github.com/${repo.fullName.split('/')[0]}.png?size=64`} />
-          <AvatarFallback className="rounded-lg text-xs">{repo.fullName.charAt(0).toUpperCase()}</AvatarFallback>
+          <AvatarFallback className="rounded-lg text-sm">{repo.fullName.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
 
         {editingId === repo.id ? (
@@ -68,7 +68,7 @@ function SortableRepoCard({ repo, index, editingId, editValue, setEditValue, sav
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="h-8 text-sm bg-background"
+              className="h-9 text-sm bg-background"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveEdit(repo.id);
@@ -89,13 +89,13 @@ function SortableRepoCard({ repo, index, editingId, editValue, setEditValue, sav
                 href={`https://github.com/${repo.fullName}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`text-sm font-semibold transition-colors no-underline truncate block ${
+                className={`text-base font-semibold transition-colors no-underline truncate block ${
                   repo.disabled ? 'text-muted-foreground line-through' : 'text-foreground hover:text-primary'
                 }`}
               >
                 {repo.fullName}
               </a>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {repo.disabled ? 'Disabled — not scanned for issues' : `Added ${new Date(repo.addedAt).toLocaleDateString()}`}
               </p>
             </div>
@@ -191,8 +191,8 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
             <BookMarked size={20} className="text-foreground" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">My Repositories</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">Add repos to track — only these will be searched for issues</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">My Repositories</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Add repos to track — only these will be searched for issues</p>
           </div>
         </div>
 
@@ -224,8 +224,8 @@ export default function RepoManager({ repos, addRepo, removeRepo, updateRepo, cl
             <div className="size-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
               <BookMarked size={24} className="text-muted-foreground/40" />
             </div>
-            <p className="text-sm font-medium text-foreground/70">No repos added yet</p>
-            <p className="text-xs text-muted-foreground mt-1.5 max-w-xs text-center leading-relaxed">
+            <p className="text-base font-medium text-foreground/70">No repos added yet</p>
+            <p className="text-sm text-muted-foreground mt-1.5 max-w-xs text-center leading-relaxed">
               Add repositories above to track their open issues. When repos are saved, only those repos will be searched.
             </p>
           </div>
