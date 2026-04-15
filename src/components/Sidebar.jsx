@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { POPULAR_LABELS, LANGUAGES, TIME_WINDOWS, STAR_PRESETS, SORT_OPTIONS, COMMENT_PRESETS } from '../services/github';
-import { Search, ChevronDown, ChevronRight, Settings, Zap, Star, MessageSquare, BookMarked, LayoutList, X, Clock, SlidersHorizontal, Key } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Settings, Zap, Star, MessageSquare, BookMarked, LayoutList, X, Clock, SlidersHorizontal, Key, Tag, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -12,6 +12,8 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
   const [repo, setRepo] = useState(filters.repo || '');
   const [showSettings, setShowSettings] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
+  const [showLanguage, setShowLanguage] = useState(true);
 
   function handleSearch(e) {
     e.preventDefault();
@@ -125,52 +127,80 @@ export default function Sidebar({ filters, updateFilters, onSearch, token, setTo
           </FilterSection>
 
           {/* Labels */}
-          <FilterSection label="Labels">
-            <div className="flex flex-wrap gap-1.5">
-              {POPULAR_LABELS.map((label) => (
-                <button
-                  key={label}
-                  onClick={() => toggleLabel(label)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
-                    (filters.labels || []).includes(label)
-                      ? 'bg-secondary border-secondary text-secondary-foreground'
-                      : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </FilterSection>
+          <Collapsible open={showLabels} onOpenChange={setShowLabels}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
+              <span className="flex items-center gap-1.5">
+                <Tag size={14} />
+                Labels
+                {(filters.labels || []).length > 0 && (
+                  <span className="bg-secondary text-secondary-foreground text-xs font-semibold px-1.5 rounded-full">
+                    {filters.labels.length}
+                  </span>
+                )}
+              </span>
+              {showLabels ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="flex flex-wrap gap-1.5 pt-3">
+                {POPULAR_LABELS.map((label) => (
+                  <button
+                    key={label}
+                    onClick={() => toggleLabel(label)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
+                      (filters.labels || []).includes(label)
+                        ? 'bg-secondary border-secondary text-secondary-foreground'
+                        : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Language */}
-          <FilterSection label="Language">
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => updateFilters({ language: '' })}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
-                  !filters.language
-                    ? 'bg-secondary border-secondary text-secondary-foreground'
-                    : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
-                }`}
-              >
-                All
-              </button>
-              {LANGUAGES.map((lang) => (
+          <Collapsible open={showLanguage} onOpenChange={setShowLanguage}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-0.5">
+              <span className="flex items-center gap-1.5">
+                <Languages size={14} />
+                Language
+                {filters.language && (
+                  <span className="bg-secondary text-secondary-foreground text-xs font-semibold px-1.5 rounded-full">
+                    1
+                  </span>
+                )}
+              </span>
+              {showLanguage ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="flex flex-wrap gap-1.5 pt-3">
                 <button
-                  key={lang}
-                  onClick={() => updateFilters({ language: lang })}
+                  onClick={() => updateFilters({ language: '' })}
                   className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
-                    filters.language === lang
+                    !filters.language
                       ? 'bg-secondary border-secondary text-secondary-foreground'
                       : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
                   }`}
                 >
-                  {lang}
+                  All
                 </button>
-              ))}
-            </div>
-          </FilterSection>
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => updateFilters({ language: lang })}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${
+                      filters.language === lang
+                        ? 'bg-secondary border-secondary text-secondary-foreground'
+                        : 'border-border text-muted-foreground hover:border-border-light hover:text-foreground'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           <Separator />
 
