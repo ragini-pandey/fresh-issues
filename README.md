@@ -34,7 +34,7 @@ Filter by language, labels, time window, stars, and more and then jump straight 
 
 ```bash
 git clone https://github.com/ragini-pandey/fresh-issues
-cd fresh-issue
+cd fresh-issues
 npm install
 ```
 
