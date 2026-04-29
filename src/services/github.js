@@ -134,6 +134,14 @@ export async function fetchIssues(filters = {}, token = '', page = 1, perPage = 
           userMessage  = `Invalid search query: ${errorData.message || 'Please check your filters and try again.'}`;
           break;
 
+        case 429: {
+          const resetTime = resetDate ? resetDate.toLocaleTimeString() : 'soon';
+          errorMessage = 'Rate limit exceeded (429 Too Many Requests).';
+          userMessage  = `GitHub API rate limit exceeded. Add a GitHub token in Settings to get 5,000 requests/hour (resets at ${resetTime}).`;
+          if (getRetryAfterUntil() <= Date.now()) setRetryAfterUntil(Date.now() + 60_000);
+          break;
+        }
+
         case 503:
           errorMessage = 'GitHub service unavailable.';
           userMessage  = 'GitHub is temporarily unavailable. Please try again in a few moments.';

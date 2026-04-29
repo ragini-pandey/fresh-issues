@@ -78,6 +78,14 @@ export async function graphqlRequest(queryStr, variables, token) {
 
       if (isSecondaryRL) ensureDefaultBackoff();
 
+      if (res.status === 429) {
+        ensureDefaultBackoff();
+        throw new GitHubAPIError(
+          'GitHub API rate limit exceeded. Add a GitHub token in Settings to get 5,000 requests/hour.',
+          429, errorData, {},
+        );
+      }
+
       throw new GitHubAPIError(
         isSecondaryRL
           ? 'You\'re making requests too quickly. The app will slow down automatically.'

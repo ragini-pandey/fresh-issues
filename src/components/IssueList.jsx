@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import IssueCard from './IssueCard';
-import { Loader2, ArrowUp, AlertTriangle, RefreshCw, Search } from 'lucide-react';
+import { Loader2, ArrowUp, AlertTriangle, RefreshCw, Search, Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
@@ -26,7 +26,7 @@ function SkeletonCard() {
   );
 }
 
-export default function IssueList({ issues, loading, error, warnings = [], totalCount, loadMore, newIds, onRetry }) {
+export default function IssueList({ issues, loading, error, warnings = [], totalCount, loadMore, newIds, onRetry, onOpenSettings }) {
   const scrollRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -61,6 +61,17 @@ export default function IssueList({ issues, loading, error, warnings = [], total
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     💡 <strong>Tip:</strong> Add a GitHub Personal Access Token in Settings to increase your rate limit from 60 to 5,000 requests per hour.
                   </p>
+                  {onOpenSettings && (
+                    <Button
+                      onClick={onOpenSettings}
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full"
+                    >
+                      <Settings size={14} className="mr-2" />
+                      Open Settings to add token
+                    </Button>
+                  )}
                 </div>
               )}
               

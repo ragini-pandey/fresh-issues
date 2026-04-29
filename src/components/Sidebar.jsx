@@ -8,9 +8,8 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-export default function Sidebar({ filters, updateFilters, onSearch, token, setToken, sound, setSound, view, setView, repoCount, mobileOpen, onMobileClose }) {
+export default function Sidebar({ filters, updateFilters, onSearch, token, setToken, sound, setSound, view, setView, repoCount, mobileOpen, onMobileClose, showSettings, setShowSettings }) {
   const [repo, setRepo] = useState(filters.repo || '');
-  const [showSettings, setShowSettings] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showLabels, setShowLabels] = useState(true);
   const [showLanguage, setShowLanguage] = useState(true);

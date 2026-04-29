@@ -35,6 +35,12 @@ function ThemeToggle() {
 function AppContent() {
   const [view, setView] = useState('issues'); // 'issues' | 'repos'
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  function openSettings() {
+    setShowSettings(true);
+    setSidebarOpen(true);
+  }
   const { repos, addRepo, removeRepo, updateRepo, clearRepos, toggleRepo, reorderRepos } = useRepos();
   const {
     issues,
@@ -84,6 +90,8 @@ function AppContent() {
           repoCount={repos.length}
           mobileOpen={sidebarOpen}
           onMobileClose={closeSidebar}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
         />
 
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
@@ -143,6 +151,7 @@ function AppContent() {
               loadMore={loadMore}
               newIds={newIds}
               onRetry={refresh}
+              onOpenSettings={openSettings}
             />
           ) : (
             <RepoManager
