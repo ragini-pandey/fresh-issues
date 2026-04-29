@@ -4,7 +4,7 @@ import {
   normalizeIssue,
   normalizeGraphQLIssue,
   getTimeAgo,
-} from './github.normalize.js';
+} from './github.normalize';
 
 describe('buildSearchQuery', () => {
   it('always includes is:issue and is:open', () => {

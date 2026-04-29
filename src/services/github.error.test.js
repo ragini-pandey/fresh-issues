@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GitHubAPIError } from './github.error.js';
+import { GitHubAPIError } from './github.error';
 
 describe('GitHubAPIError', () => {
   it('is an instance of Error with the right name', () => {

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('./github.throttle.js', () => ({
+vi.mock('./github.throttle', () => ({
   queueRequest: (fn) => fn(),
 }));
 
-import { CACHE, getCached } from './github.cache.js';
+import { CACHE, getCached } from './github.cache';
 
 describe('getCached', () => {
   beforeEach(() => {

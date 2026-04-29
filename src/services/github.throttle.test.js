@@ -4,7 +4,7 @@ import {
   setRetryAfterUntil,
   getRetryAfterUntil,
   sleep,
-} from './github.throttle.js';
+} from './github.throttle';
 
 describe('sleep', () => {
   beforeEach(() => vi.useFakeTimers());
