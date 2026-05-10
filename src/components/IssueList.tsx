@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowUp,
+  ChevronDown,
   Loader2,
   RefreshCw,
   Search,
@@ -8,7 +9,13 @@ import {
 } from 'lucide-react';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import IssueCard from './IssueCard';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Issue } from '@/types';
 
@@ -66,6 +73,35 @@ export default function IssueList({
   const isStale = deferredIssues !== issues;
 
   const visibleIssues = useMemo(() => deferredIssues, [deferredIssues]);
+
+  const groupedIssues = useMemo(() => {
+    const groups = new Map<string, Issue[]>();
+    for (const issue of visibleIssues) {
+      const list = groups.get(issue.repoFullName);
+      if (list) {
+        list.push(issue);
+      } else {
+        groups.set(issue.repoFullName, [issue]);
+      }
+    }
+    return Array.from(groups.entries());
+  }, [visibleIssues]);
+
+  const [collapsedRepos, setCollapsedRepos] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  function toggleRepo(repo: string, open: boolean) {
+    setCollapsedRepos((prev) => {
+      const next = new Set(prev);
+      if (open) {
+        next.delete(repo);
+      } else {
+        next.add(repo);
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -234,19 +270,69 @@ export default function IssueList({
           className="space-y-3"
           style={{ opacity: isStale ? 0.6 : 1, transition: 'opacity 150ms' }}
         >
-          {visibleIssues.map((issue, i) => (
-            <div
-              key={issue.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
-            >
-              <IssueCard
-                issue={issue}
-                isNew={newIds.has(issue.id)}
-                index={i}
-              />
-            </div>
-          ))}
+          {groupedIssues.map(([repoFullName, repoIssues]) => {
+            const owner = repoFullName.split('/')[0];
+            const isOpen = !collapsedRepos.has(repoFullName);
+            return (
+              <Collapsible
+                key={repoFullName}
+                open={isOpen}
+                onOpenChange={(open) => toggleRepo(repoFullName, open)}
+                className="rounded-xl border border-border bg-card/40 overflow-hidden"
+              >
+                <CollapsibleTrigger
+                  className="group flex w-full items-center gap-3 px-4 py-3 text-left
+                    hover:bg-muted/40 transition-colors cursor-pointer"
+                >
+                  <ChevronDown
+                    size={16}
+                    className="text-muted-foreground shrink-0 transition-transform duration-200
+                      group-data-[state=closed]:-rotate-90"
+                  />
+                  <Avatar className="size-6 rounded-md shrink-0">
+                    <AvatarImage
+                      src={`https://github.com/${owner}.png?size=32`}
+                    />
+                    <AvatarFallback className="rounded-md text-[11px] font-medium">
+                      {owner.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium truncate flex-1">
+                    {repoFullName}
+                  </span>
+                  <span
+                    className="text-xs font-medium text-muted-foreground bg-muted/60
+                      rounded-full px-2 py-0.5 shrink-0"
+                  >
+                    {repoIssues.length}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent
+                  className="overflow-hidden
+                    data-[state=open]:animate-collapsible-down
+                    data-[state=closed]:animate-collapsible-up"
+                >
+                  <div className="space-y-3 px-3 pb-3 pt-1">
+                    {repoIssues.map((issue, i) => (
+                      <div
+                        key={issue.id}
+                        className="animate-fade-in-up"
+                        style={{
+                          animationDelay: `${Math.min(i * 40, 400)}ms`,
+                        }}
+                      >
+                        <IssueCard
+                          issue={issue}
+                          isNew={newIds.has(issue.id)}
+                          index={i}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
         </div>
         {visibleIssues.length < totalCount && (
           <div className="flex justify-center pt-6 pb-2">

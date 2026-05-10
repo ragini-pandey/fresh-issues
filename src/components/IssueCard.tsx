@@ -13,7 +13,6 @@ export default function IssueCard({ issue, isNew, index = 0 }: IssueCardProps) {
   const timeAgo = formatDistanceToNow(new Date(issue.createdAt), {
     addSuffix: true,
   });
-  const owner = issue.repoFullName.split('/')[0];
 
   return (
     <a
@@ -31,22 +30,11 @@ export default function IssueCard({ issue, isNew, index = 0 }: IssueCardProps) {
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="p-5">
-        {/* Top row: repo info + time */}
+        {/* Top row: issue number + time */}
         <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Avatar className="size-6 rounded-md shrink-0">
-              <AvatarImage src={`https://github.com/${owner}.png?size=32`} />
-              <AvatarFallback className="rounded-md text-[11px] font-medium">
-                {owner.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-muted-foreground truncate">
-              {issue.repoFullName}
-            </span>
-            <span className="text-sm text-muted-foreground/40 font-mono shrink-0">
-              #{issue.number}
-            </span>
-          </div>
+          <span className="text-sm text-muted-foreground/40 font-mono shrink-0">
+            #{issue.number}
+          </span>
           <div className="flex items-center gap-2 shrink-0 ml-3">
             <span className="text-sm text-muted-foreground/60 whitespace-nowrap hidden sm:block">
               {timeAgo}
